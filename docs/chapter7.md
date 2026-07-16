@@ -63,10 +63,7 @@
 
 ### gaussian-splatting 仓库文件树
 
-```
-[图7-1：gaussian-splatting 仓库完整文件树结构图]
-（建议绘制树形图，高亮核心模块：train.py、render.py、scene/、gaussian_renderer/、utils/）
-```
+![图7.1 gaussian-splatting 代码仓库目录结构](pic/ch7_fig1.png)
 
 仓库根目录的顶层结构如下（伪代码说明，非真实完整内容）：
 
@@ -171,11 +168,7 @@ pip install submodules/simple-knn
 
 ### 总体流程概览
 
-```
-[图7-2：train.py 训练主循环流程图]
-（建议绘制包含以下节点的流程图：
- 初始化 → 随机采样相机 → 前向渲染 → 计算Loss → 反向传播 → 优化器步进 → ADC → 迭代判断）
-```
+![图7.2 train.py 主循环流程图](pic/ch7_fig2.png)
 
 `train.py` 的 `training()` 函数体现了3DGS完整的优化逻辑，可分为六个阶段：
 
@@ -387,6 +380,8 @@ lpips_value = lpips_fn(render * 2 - 1, gt * 2 - 1)  # 注意归一化到[-1,1]
 
 4. **LPIPS指标选择**：论文中使用的是 `lpips` 库的 `alex` 网络，部分工作使用 `vgg`，两者数值有差异，比较时需统一。
 
+![图7.3 NeRF vs 3DGS 性能对比雷达图](pic/ch7_fig3.png)
+
 > **思考题**
 >
 > 1. 若某个场景的PSNR很高但LPIPS也偏高（较差），说明了什么？这种情况在什么类型的场景中容易出现？
@@ -534,3 +529,7 @@ nvcc --version  # 应显示CUDA版本
 ---
 
 *本章完*
+
+---
+
+*上一章：[第六章：3DGS 核心算法详解](chapter6.md)  | 下一章：[第八章：数据准备与训练实战](chapter8.md)*

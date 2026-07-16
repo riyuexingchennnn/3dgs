@@ -281,3 +281,7 @@ SSIM 考虑局部 patch 内的亮度、对比度、结构，对于恢复清晰�
 - 官方仓库 `gaussian_renderer/__init__.py`（前向渲染实现）
 - `submodules/diff-gaussian-rasterization/cuda_rasterizer/`（CUDA光栅化核心代码）
 - Lassner & Zollhöfer, "Pulsar: Efficient Sphere-based Neural Rendering", CVPR 2021（类似思路的早期工作）
+
+---
+
+*上一章：[第五章：体渲染与 Alpha 合成](chapter5.md)  | 下一章：[第七章：从原始论文到开源代码](chapter7.md)*

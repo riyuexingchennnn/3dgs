@@ -64,6 +64,8 @@ Surface Gaussian Regularization：在3DGS训练中加入正则化项，鼓励高
 | GOF | 高 | 很好 | 接近实时 |
 | SuGaR | 中 | 中 | 慢 |
 
+![图9.2 2DGS 与 3DGS 几何表示对比](pic/ch9_fig2.png)
+
 **思考题**：2DGS 用圆盘替换椭球，意味着每个基元少了一个维度的自由度。这在表示有厚度的半透明物体（如玻璃、头发）时会遇到什么问题？
 
 ---
@@ -325,3 +327,7 @@ Surface Gaussian Regularization：在3DGS训练中加入正则化项，鼓励高
 - [Awesome-3D-Gaussian-Splatting](https://github.com/MrNeRF/awesome-3D-gaussian-splatting) — 持续维护的论文列表，新论文优先在此出现
 - [3DGS Surveys](https://arxiv.org/abs/2401.03890) — Gaussian Splatting综述论文（2024）
 - [Papers With Code - Gaussian Splatting](https://paperswithcode.com/task/gaussian-splatting) — 实时benchmark排行榜
+
+---
+
+*上一章：[第八章：数据准备与训练实战](chapter8.md)  | 下一章：[第十章：成为贡献者——如何迭代改进系统](chapter10.md)*

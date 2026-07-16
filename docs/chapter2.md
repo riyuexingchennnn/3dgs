@@ -14,7 +14,7 @@
      标注焦距 f、主光轴、图像平面距离等。
      文件名建议：fig2_1_pinhole_camera.png -->
 
-![针孔相机示意图](../figures/fig2_1_pinhole_camera.png)
+![针孔相机示意图](pic/ch2_fig1.png)
 *图 2-1：针孔相机模型示意。三维点 P 经光心 O 投影到像平面上得到像点 p。*
 
 ### 相似三角形推导
@@ -94,7 +94,7 @@ $$K = \begin{pmatrix} f_x & 0 & c_x \\ 0 & f_y & c_y \\ 0 & 0 & 1 \end{pmatrix}$
      用箭头标注每步变换名称：[R|t]、内参K、像素缩放+平移。
      文件名建议：fig2_2_coordinate_chain.png -->
 
-![坐标系变换链](../figures/fig2_2_coordinate_chain.png)
+![坐标系变换链](pic/ch2_fig2.png)
 *图 2-2：四个坐标系及其变换链。世界坐标系 → 相机坐标系 → 图像坐标系 → 像素坐标系。*
 
 ### 旋转矩阵 $R$ 与平移向量 $t$
@@ -229,7 +229,7 @@ $$u = \frac{f_x X_c}{Z_c} + c_x, \quad v = \frac{f_y Y_c}{Z_c} + c_y$$
      另可加一行展示切向畸变（倾斜效果）。
      文件名建议：fig2_4_distortion.png -->
 
-![畸变效果对比](../figures/fig2_4_distortion.png)
+![畸变效果对比](pic/ch2_fig3.png)
 *图 2-4：畸变效果对比。左：无畸变；中：桶形畸变（$k_1 < 0$）；右：枕形畸变（$k_1 > 0$）。*
 
 ### 径向畸变
@@ -339,7 +339,7 @@ img_undistorted = cv2.remap(img, mapx, mapy, cv2.INTER_LINEAR)
      箭头表示从二维匹配到三维点的恢复过程。
      文件名建议：fig2_5_sfm_matching.png -->
 
-![SfM 特征匹配示意](../figures/fig2_5_sfm_matching.png)
+![SfM 特征匹配示意](pic/ch2_fig4.png)
 *图 2-5：SfM 的核心思想。左右两张图像中的特征点被匹配后，通过三角化恢复三维坐标。*
 
 **SfM 的核心步骤**：
@@ -406,7 +406,7 @@ COLMAP 是目前最流行的开源 SfM + MVS 管线，由 Johannes Schönberger 
      或者使用真实数据集（如 Garden、Room）的重建结果截图。
      文件名建议：fig2_6_colmap_output.png -->
 
-![COLMAP 输出示例](../figures/fig2_6_colmap_output.png)
+![COLMAP 输出示例](pic/ch2_fig5.png)
 *图 2-6：COLMAP 重建结果示例。蓝色点为稀疏点云，红色视锥为各相机的位姿估计。*
 
 ### 安装
@@ -640,4 +640,6 @@ python train.py \
 
 ---
 
-*下一章：第三章 三维高斯表示与属性*
+---
+
+*上一章：[第一章：三维重建是什么，为什么重要](chapter1.md)  | 下一章：[第三章：高斯函数与概率基础](chapter3.md)*

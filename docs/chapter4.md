@@ -23,7 +23,7 @@ $$L_s = k_s \cdot (\mathbf{r} \cdot \mathbf{v})^n$$
      右图：同一个球体具有镜面反射，不同观察角度下高光位置发生明显移动
      建议使用渲染软件（如 Blender）生成，角度间隔 30 度，共 6 个视角 -->
 
-![图 4-1：朗伯体与镜面反射的外观差异](pic/ch4_fig1_lambertian_vs_specular.png)
+![图 4-1：朗伯体与镜面反射的外观差异](pic/ch4_fig1.png)
 
 *图 4-1：左侧为朗伯体球，从不同方向观察颜色几乎不变；右侧为具有镜面反射的球，高光随观察方向移动。这一差异是场景中外观方向依赖性的直观体现。*
 
@@ -88,7 +88,7 @@ $$\int_{S^2} Y_l^m(\theta, \phi) \cdot Y_{l'}^{m'}(\theta, \phi) \, d\Omega = \d
      球的半径编码函数绝对值大小，形成花瓣状图案
      参考 Wikipedia "Spherical harmonics" 页面的标准可视化 -->
 
-![图 4-2：球谐基函数的球面分布（l=0 至 l=2）](pic/ch4_fig2_sh_visualization.png)
+![图 4-2：球谐基函数的球面分布（l=0 至 l=2）](pic/ch4_fig2.png)
 
 *图 4-2：球谐基函数 $Y_l^m$ 在球面上的分布。红色代表正值，蓝色代表负值。随着阶数 $l$ 增大，基函数的空间振荡频率逐渐提高，能捕捉更精细的方向变化。*
 
@@ -224,7 +224,7 @@ $$\mathbf{c}(\mathbf{d}) = k_{0,0} \cdot Y_0^0 = \frac{k_{0,0}}{2\sqrt{\pi}}$$
      从左到右：原始参考图 / 0阶（纯色）/ 1阶 / 2阶 / 3阶
      重点突出高光区域的还原质量，以及 PSNR/SSIM 指标随阶数的提升曲线 -->
 
-![图 4-3：不同阶数球谐对颜色的拟合效果对比](pic/ch4_fig3_sh_order_comparison.png)
+![图 4-3：不同阶数球谐对颜色的拟合效果对比](pic/ch4_fig3.png)
 
 *图 4-3：从 0 阶到 3 阶球谐对同一场景的颜色拟合效果。0 阶（常色）完全无法捕捉高光；1 阶可表示简单的方向性渐变；2 阶开始出现粗略的高光；3 阶已能较好还原真实材质的视角依赖外观。*
 
@@ -275,3 +275,7 @@ $$\mathbf{c}(\mathbf{d}) = k_{0,0} \cdot Y_0^0 = \frac{k_{0,0}}{2\sqrt{\pi}}$$
 - Ramamoorthi & Hanrahan, "An Efficient Representation for Irradiance Environment Maps", SIGGRAPH 2001（球谐函数在图形学中的经典应用）
 - Sloan et al., "Precomputed Radiance Transfer for Real-Time Rendering in Dynamic, Low-Frequency Lighting Environments", SIGGRAPH 2002（PRT 技术）
 - 3DGS 代码：`scene/gaussian_model.py` 中的 `get_features()` 方法（球谐系数的存取）
+
+---
+
+*上一章：[第三章：高斯函数与概率基础](chapter3.md)  | 下一章：[第五章：体渲染与 Alpha 合成](chapter5.md)*

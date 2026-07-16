@@ -416,3 +416,7 @@ renders, alphas, info = rasterization(
 - [nerfstudio 文档](https://docs.nerf.studio/)：包含 Splatfacto（3DGS in nerfstudio）的完整使用说明
 - [gsplat 文档](https://docs.gsplat.studio/)：API参考和自定义扩展指南
 - COLMAP 官方文档：[colmap.github.io](https://colmap.github.io/)
+
+---
+
+*上一章：[第七章：从原始论文到开源代码](chapter7.md)  | 下一章：[第九章：主流改进方向与前沿论文（截至 2026 年中）](chapter9.md)*

@@ -460,3 +460,7 @@ def opacity_field(x, gaussians):
 - [The Missing Semester of Your CS Education](https://missing.csail.mit.edu/)（MIT）— 工程规范基础
 - Goodfellow et al., "Deep Learning" — 第8章优化器，第9章正则化
 - [ML Reproducibility Checklist](https://www.cs.mcgill.ca/~jpineau/ReproducibilityChecklist.pdf) — 机器学习可复现性标准清单
+
+---
+
+*上一章：[第九章：主流改进方向与前沿论文（截至 2026 年中）](chapter9.md)*
