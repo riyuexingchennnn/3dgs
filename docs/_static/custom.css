@@ -1,27 +1,22 @@
-/* 对齐 ROS 2 官方文档（docs.ros.org）的观感。
-   该站使用 sphinx_rtd_theme 默认样式：
-     · 左上角搜索区  #2980b9（蓝）
-     · 左侧导航栏    #343131（深灰），宽 300px
-     · 正文          白色，max-width 800px，居中
-     · 正文右侧      #fcfcfc 灰色区域
-   此处仅显式固定这几项，其余保持主题默认。 */
-
-/* 正文白底，右侧留出浅灰区域 */
-.wy-nav-content-wrap {
-  background: #fcfcfc;
-}
+/* 与 ROS 2 官方文档严格一致。
+   ROS 2 仓库 source/_static/custom.css 全文只有一条规则：
+       .wy-nav-content { max-width: 64rem; }
+   其余全部沿用 sphinx_rtd_theme 默认（蓝 #2980b9 搜索区、深灰 #343131 侧栏、
+   #fcfcfc 灰色底），因此这里不做任何颜色与背景覆盖。 */
 
 .wy-nav-content {
-  background: #ffffff;
-  max-width: 800px;
+    max-width: 64rem;
+}
+
+/* 正文区链接统一为蓝色（visited 状态默认是紫色，页脚除外） */
+.rst-content [role="main"] a,
+.rst-content [role="main"] a:visited,
+.rst-content [role="main"] a:hover {
+    color: #2980b9;
 }
 
 /* 行间公式过宽时允许横向滚动，避免撑破版心 */
 mjx-container[display="true"] {
-  overflow-x: auto;
-  overflow-y: hidden;
-}
-
-.rst-content .math {
-  overflow-x: auto;
+    overflow-x: auto;
+    overflow-y: hidden;
 }
