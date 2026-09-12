@@ -122,13 +122,13 @@ $$O = \sum_{i=1}^{N} T_i\, \alpha_i, \qquad D = \sum_{i=1}^{N} T_i\, \alpha_i\, 
 
 ### 5.2.3 前向合成的递推形式
 
-Alpha 合成可以按**由前到后（front-to-back）**的顺序递推计算，这正是渲染管线中最常用的实现方式：
+Alpha 合成可以按<strong>由前到后（front-to-back）</strong>的顺序递推计算，这正是渲染管线中最常用的实现方式：
 
 $$C_{\text{acc}}^{(i)} = C_{\text{acc}}^{(i-1)} + T_i\, \alpha_i\, c_i, \qquad T_{i+1} = T_i\, (1 - \alpha_i)$$
 
 初始条件：$C_{\text{acc}}^{(0)} = \mathbf{0}$，$T_1 = 1$。
 
-当累积透射率 $T_i < \epsilon$（如 $\epsilon = 0.0001$）时，可提前终止——后续层的贡献可忽略不计，这是重要的**早退（early termination）**优化。
+当累积透射率 $T_i < \epsilon$（如 $\epsilon = 0.0001$）时，可提前终止——后续层的贡献可忽略不计，这是重要的<strong>早退（early termination）</strong>优化。
 
 ![图 5-2：Alpha 合成叠加过程示意图](pic/ch5_fig2.png)
 >
@@ -148,7 +148,7 @@ $$C_{\text{acc}}^{(i)} = C_{\text{acc}}^{(i-1)} + T_i\, \alpha_i\, c_i, \qquad T
 
 ### 5.3.1 网络结构与输入输出
 
-NeRF（Neural Radiance Field）用一个**多层感知机（MLP）**隐式表示整个场景：
+NeRF（Neural Radiance Field）用一个<strong>多层感知机（MLP）</strong>隐式表示整个场景：
 
 $$F_\Theta: (\mathbf{x}, \mathbf{d}) \mapsto (\sigma, \mathbf{c})$$
 
@@ -158,7 +158,7 @@ $$F_\Theta: (\mathbf{x}, \mathbf{d}) \mapsto (\sigma, \mathbf{c})$$
 - $\sigma \geq 0$：体密度（与视角无关，先由 $\mathbf{x}$ 预测）
 - $\mathbf{c} = (r, g, b) \in [0,1]^3$：辐射颜色（依赖视角，捕捉镜面反射）
 
-为避免 MLP 偏好低频函数（无法拟合高频细节），输入坐标经**位置编码（Positional Encoding）**升维：
+为避免 MLP 偏好低频函数（无法拟合高频细节），输入坐标经<strong>位置编码（Positional Encoding）</strong>升维：
 
 $$\gamma(p) = \left(\sin(2^0 \pi p),\, \cos(2^0 \pi p),\, \ldots,\, \sin(2^{L-1} \pi p),\, \cos(2^{L-1} \pi p)\right)$$
 
@@ -266,7 +266,7 @@ $$C(\mathbf{x}) = \sum_{k \in \mathcal{S}(\mathbf{x})} T_k(\mathbf{x})\, \alpha_
 
 $$\text{key} = \underbrace{\text{Tile ID}}_{32\text{-bit}} \| \underbrace{\text{Depth（浮点转整型）}}_{32\text{-bit}}$$
 
-使用 GPU 并行**基数排序（Radix Sort）**对所有键排序，时间复杂度 $O(M \log M)$（$M$ 为总（高斯, Tile）对数，$M \ll N \cdot \text{Tiles}$）。
+使用 GPU 并行<strong>基数排序（Radix Sort）</strong>对所有键排序，时间复杂度 $O(M \log M)$（$M$ 为总（高斯, Tile）对数，$M \ll N \cdot \text{Tiles}$）。
 
 **步骤 3：逐 Tile 并行 Alpha 合成**
 
@@ -292,7 +292,7 @@ $$\text{key} = \underbrace{\text{Tile ID}}_{32\text{-bit}} \| \underbrace{\text{
 
 ### 5.5.1 可微渲染的基本框架
 
-**可微渲染（Differentiable Rendering）**的核心思想：将渲染过程设计为关于场景参数可微的函数，从而可以通过**反向传播**将像素级的重建误差梯度传递回场景参数。
+<strong>可微渲染（Differentiable Rendering）</strong>的核心思想：将渲染过程设计为关于场景参数可微的函数，从而可以通过**反向传播**将像素级的重建误差梯度传递回场景参数。
 
 给定相机位姿 $\{\mathcal{P}_m\}_{m=1}^{M}$ 和对应的真实图像 $\{I_m^{\text{gt}}\}$，优化目标为：
 
@@ -331,7 +331,7 @@ $$\frac{\partial \mathcal{L}}{\partial \boldsymbol{\mu}_k} = \sum_\mathbf{x} \fr
 
 ### 5.5.3 自适应密度控制
 
-仅靠梯度下降无法处理高斯数量的动态调整，3DGS 引入**自适应密度控制（Adaptive Density Control）**机制：
+仅靠梯度下降无法处理高斯数量的动态调整，3DGS 引入<strong>自适应密度控制（Adaptive Density Control）</strong>机制：
 
 | 操作 | 触发条件 | 效果 |
 |------|---------|------|

@@ -126,7 +126,7 @@ $$
 
 其中 $k^2 = -2\ln(c \cdot (2\pi)^{d/2} |\boldsymbol{\Sigma}|^{1/2})$ 为正常数。
 
-这正是**马氏距离（Mahalanobis Distance）**为常数 $k$ 的方程，几何上是一个**以 $\boldsymbol{\mu}$ 为中心的椭球**。
+这正是<strong>马氏距离（Mahalanobis Distance）</strong>为常数 $k$ 的方程，几何上是一个**以 $\boldsymbol{\mu}$ 为中心的椭球**。
 
 **特殊情形分析：**
 
@@ -343,7 +343,7 @@ $$
 
 ### 3.5.1 高斯混合模型（GMM）基础
 
-**高斯混合模型（Gaussian Mixture Model, GMM）**是多个高斯分布的加权叠加：
+<strong>高斯混合模型（Gaussian Mixture Model, GMM）</strong>是多个高斯分布的加权叠加：
 
 $$
 p(\mathbf{x}) = \sum_{k=1}^{K} \pi_k \,\mathcal{N}(\mathbf{x};\, \boldsymbol{\mu}_k, \boldsymbol{\Sigma}_k)

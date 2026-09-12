@@ -55,6 +55,8 @@ html_static_path = ["_static"]
 html_css_files = ["custom.css"]
 html_title = "3DGS 教程文档"
 html_short_title = "3DGS 教程"
+html_logo = "_static/logo.jpg"
+html_favicon = "_static/favicon.png"
 
 # ---- 右上角 Edit on GitHub ----
 html_context = {

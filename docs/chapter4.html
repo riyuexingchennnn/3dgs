@@ -12,6 +12,7 @@
       <link rel="stylesheet" type="text/css" href="_static/custom.css?v=9cc37e4b" />
 
   
+    <link rel="shortcut icon" href="_static/favicon.png"/>
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
       <script src="_static/documentation_options.js?v=1663b99f"></script>
@@ -37,6 +38,7 @@
           
           <a href="index.html" class="icon icon-home">
             三维高斯溅射（3DGS）完全教程
+              <img src="_static/logo.jpg" class="logo" alt="Logo"/>
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -496,9 +498,9 @@
 <section id="id3">
 <h3>朗伯体与非朗伯体<a class="headerlink" href="#id3" title="链接到此标题。"></a></h3>
 <p>在三维场景重建中，物体表面的外观并非在所有观察方向上都相同。理解这一现象，需要首先区分两类理想化的反射模型。</p>
-<p>**朗伯体（Lambertian Surface）**是最简单的漫反射模型。其核心假设是：表面向各个方向的辐射亮度（Radiance）与观察方向无关，只与入射光方向和表面法线之间的夹角余弦成正比。日常生活中，哑光墙面、纸张、未抛光木材等接近朗伯体。对于朗伯体，无论相机从哪个角度拍摄，同一个表面点的颜色（在相同光照下）几乎保持不变。</p>
-<p>**非朗伯体（Non-Lambertian Surface）**则展现出与观察方向密切相关的外观变化。金属、玻璃、塑料表面、水面等都属于此类。当光线以特定角度照射时，这些表面会产生明显的镜面高光（Specular Highlight），高光的位置随观察方向改变而移动。</p>
-<p>**镜面反射（Specular Reflection）**是非朗伯体行为中最典型的现象。根据经典的 Phong 模型或物理正确的 Cook-Torrance BRDF（双向反射分布函数），镜面反射强度与反射向量 <span class="math notranslate nohighlight">\(\mathbf{r}\)</span> 和观察方向 <span class="math notranslate nohighlight">\(\mathbf{v}\)</span> 之间的夹角密切相关：</p>
+<p><strong>朗伯体（Lambertian Surface）</strong>是最简单的漫反射模型。其核心假设是：表面向各个方向的辐射亮度（Radiance）与观察方向无关，只与入射光方向和表面法线之间的夹角余弦成正比。日常生活中，哑光墙面、纸张、未抛光木材等接近朗伯体。对于朗伯体，无论相机从哪个角度拍摄，同一个表面点的颜色（在相同光照下）几乎保持不变。</p>
+<p><strong>非朗伯体（Non-Lambertian Surface）</strong>则展现出与观察方向密切相关的外观变化。金属、玻璃、塑料表面、水面等都属于此类。当光线以特定角度照射时，这些表面会产生明显的镜面高光（Specular Highlight），高光的位置随观察方向改变而移动。</p>
+<p><strong>镜面反射（Specular Reflection）</strong>是非朗伯体行为中最典型的现象。根据经典的 Phong 模型或物理正确的 Cook-Torrance BRDF（双向反射分布函数），镜面反射强度与反射向量 <span class="math notranslate nohighlight">\(\mathbf{r}\)</span> 和观察方向 <span class="math notranslate nohighlight">\(\mathbf{v}\)</span> 之间的夹角密切相关：</p>
 <div class="math notranslate nohighlight">
 \[L_s = k_s \cdot (\mathbf{r} \cdot \mathbf{v})^n\]</div>
 <p>其中 <span class="math notranslate nohighlight">\(n\)</span> 控制高光的锐利程度，<span class="math notranslate nohighlight">\(k_s\)</span> 为镜面反射系数。</p>
@@ -690,14 +692,14 @@
 <section id="id12">
 <h3>已知方向如何计算颜色——线性组合<a class="headerlink" href="#id12" title="链接到此标题。"></a></h3>
 <p>给定一个归一化的观察方向向量 <span class="math notranslate nohighlight">\(\mathbf{d} = (x, y, z)\)</span>（满足 <span class="math notranslate nohighlight">\(x^2+y^2+z^2=1\)</span>），计算颜色的步骤如下：</p>
-<p>**第一步：计算所有基函数的值。**将 <span class="math notranslate nohighlight">\(\mathbf{d}\)</span> 代入 16 个（3 阶时）球谐基函数，得到一个长度为 16 的向量：</p>
+<p><strong>第一步：计算所有基函数的值。</strong>将 <span class="math notranslate nohighlight">\(\mathbf{d}\)</span> 代入 16 个（3 阶时）球谐基函数，得到一个长度为 16 的向量：</p>
 <div class="math notranslate nohighlight">
 \[\mathbf{Y}(\mathbf{d}) = [Y_0^0(\mathbf{d}),\ Y_1^{-1}(\mathbf{d}),\ Y_1^0(\mathbf{d}),\ Y_1^1(\mathbf{d}),\ Y_2^{-2}(\mathbf{d}),\ \ldots,\ Y_3^3(\mathbf{d})]\]</div>
-<p>**第二步：与系数向量做点积。**对每个通道分别计算：</p>
+<p><strong>第二步：与系数向量做点积。</strong>对每个通道分别计算：</p>
 <div class="math notranslate nohighlight">
 \[c_R = \mathbf{k}_R \cdot \mathbf{Y}(\mathbf{d}) = \sum_{i=1}^{16} k_i^R \cdot Y_i(\mathbf{d})\]</div>
 <p>这是一个纯粹的<strong>线性运算</strong>，计算代价极低（16 次乘法，15 次加法），非常适合 GPU 并行计算。</p>
-<p>**第三步：激活函数映射到有效颜色范围。**通常对计算结果加 0.5 的偏置后取 sigmoid 或直接截断到 <span class="math notranslate nohighlight">\([0, 1]\)</span>：</p>
+<p><strong>第三步：激活函数映射到有效颜色范围。</strong>通常对计算结果加 0.5 的偏置后取 sigmoid 或直接截断到 <span class="math notranslate nohighlight">\([0, 1]\)</span>：</p>
 <div class="math notranslate nohighlight">
 \[\mathbf{c}(\mathbf{d}) = \sigma\!\left(\mathbf{c}_{\text{raw}}(\mathbf{d}) + 0.5\right)\]</div>
 </section>
@@ -725,8 +727,8 @@
 <div class="math notranslate nohighlight">
 \[\mathbf{c}(\mathbf{d}) = k_{0,0} \cdot Y_0^0 = \frac{k_{0,0}}{2\sqrt{\pi}}\]</div>
 <p>这等价于传统的固定 RGB 颜色，与观察方向完全无关。每个高斯仅需 3 个颜色参数（RGB 各 1 个）。</p>
-<p>**适用场景：**快速原型验证、朗伯体主导的场景（如户外大范围地形重建）、对存储有严格限制的移动端部署。</p>
-<p>**局限性：**无法表示任何镜面反射、视角相关效果，高光区域会被平均成模糊的颜色，重建质量显著下降。</p>
+<p><strong>适用场景：</strong>快速原型验证、朗伯体主导的场景（如户外大范围地形重建）、对存储有严格限制的移动端部署。</p>
+<p><strong>局限性：</strong>无法表示任何镜面反射、视角相关效果，高光区域会被平均成模糊的颜色，重建质量显著下降。</p>
 </section>
 <section id="id16">
 <h3>3 阶——质量与开销的平衡<a class="headerlink" href="#id16" title="链接到此标题。"></a></h3>
@@ -786,10 +788,10 @@
 </table>
 <p>然而，实验表明从 3 阶升级到 4 阶，PSNR 的提升通常不超过 0.5 dB，而参数量接近翻倍。这一边际收益递减的现象源于以下原因：</p>
 <ol class="arabic simple">
-<li><p>**真实场景的低频本质：**大多数室外场景的主要光照变化（天空光、漫射光）属于低频信号，3 阶已能充分表示；</p></li>
-<li><p>**其他瓶颈的主导：**限制重建质量的往往是高斯密度不足、几何精度不够，而非颜色表达能力；</p></li>
-<li><p>**过拟合风险：**高阶系数在观测稀疏的方向上容易过拟合到训练视角，导致新视角合成效果变差；</p></li>
-<li><p>**GPU 缓存效率：**更大的参数张量意味着更高的显存带宽压力，可能导致实际渲染速度下降。</p></li>
+<li><p><strong>真实场景的低频本质：</strong>大多数室外场景的主要光照变化（天空光、漫射光）属于低频信号，3 阶已能充分表示；</p></li>
+<li><p><strong>其他瓶颈的主导：</strong>限制重建质量的往往是高斯密度不足、几何精度不够，而非颜色表达能力；</p></li>
+<li><p><strong>过拟合风险：</strong>高阶系数在观测稀疏的方向上容易过拟合到训练视角，导致新视角合成效果变差；</p></li>
+<li><p><strong>GPU 缓存效率：</strong>更大的参数张量意味着更高的显存带宽压力，可能导致实际渲染速度下降。</p></li>
 </ol>
 <p>近期研究表明，对于某些特殊场景（如高反射性室内场景、镜面较多的工业场景），引入神经网络（如 MLP）替代高阶球谐可以在更低的参数开销下获得更好的视角相关效果。这也是 3DGS 后续变体（如 Scaffold-GS、Mip-Splatting 等）的重要改进方向之一。</p>
 <blockquote>

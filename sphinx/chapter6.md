@@ -87,7 +87,7 @@ $$\Sigma = R \cdot \text{diag}(s_x^2, s_y^2, s_z^2) \cdot R^T$$
 
 ### 仿射近似（Affine Approximation）
 
-透视投影本身是非线性的（存在除以深度 $Z$ 的操作），但在局部范围内可以用**一阶泰勒展开（雅可比近似）**线性化：
+透视投影本身是非线性的（存在除以深度 $Z$ 的操作），但在局部范围内可以用<strong>一阶泰勒展开（雅可比近似）</strong>线性化：
 
 $$\mathbf{x} = \pi(\mathbf{X}) \approx \pi(\boldsymbol{\mu}) + J(\mathbf{X} - \boldsymbol{\mu})$$
 

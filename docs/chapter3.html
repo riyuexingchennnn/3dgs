@@ -12,6 +12,7 @@
       <link rel="stylesheet" type="text/css" href="_static/custom.css?v=9cc37e4b" />
 
   
+    <link rel="shortcut icon" href="_static/favicon.png"/>
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
       <script src="_static/documentation_options.js?v=1663b99f"></script>
@@ -37,6 +38,7 @@
           
           <a href="index.html" class="icon icon-home">
             三维高斯溅射（3DGS）完全教程
+              <img src="_static/logo.jpg" class="logo" alt="Logo"/>
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -628,7 +630,7 @@ f(\mathbf{x}) = \frac{1}{(2\pi)^{d/2} |\boldsymbol{\Sigma}|^{1/2}} \exp\!\left(-
 (\mathbf{x}-\boldsymbol{\mu})^\top \boldsymbol{\Sigma}^{-1} (\mathbf{x}-\boldsymbol{\mu}) = k^2
 \]</div>
 <p>其中 <span class="math notranslate nohighlight">\(k^2 = -2\ln(c \cdot (2\pi)^{d/2} |\boldsymbol{\Sigma}|^{1/2})\)</span> 为正常数。</p>
-<p>这正是<strong>马氏距离（Mahalanobis Distance）<strong>为常数 <span class="math notranslate nohighlight">\(k\)</span> 的方程，几何上是一个</strong>以 <span class="math notranslate nohighlight">\(\boldsymbol{\mu}\)</span> 为中心的椭球</strong>。</p>
+<p>这正是<strong>马氏距离（Mahalanobis Distance）</strong>为常数 <span class="math notranslate nohighlight">\(k\)</span> 的方程，几何上是一个<strong>以 <span class="math notranslate nohighlight">\(\boldsymbol{\mu}\)</span> 为中心的椭球</strong>。</p>
 <p><strong>特殊情形分析：</strong></p>
 <ul class="simple">
 <li><p>当 <span class="math notranslate nohighlight">\(\boldsymbol{\Sigma} = \sigma^2 \mathbf{I}\)</span>（各向同性）时，等式变为 <span class="math notranslate nohighlight">\(\|\mathbf{x} - \boldsymbol{\mu}\|^2 = k^2 \sigma^2\)</span>，等高线为<strong>正圆</strong></p></li>
@@ -859,7 +861,7 @@ f(\mathbf{x}) = \frac{1}{(2\pi)^{d/2} |\boldsymbol{\Sigma}|^{1/2}} \exp\!\left(-
 <h2>3.5 高斯混合与叠加<a class="headerlink" href="#id24" title="链接到此标题。"></a></h2>
 <section id="gmm">
 <h3>3.5.1 高斯混合模型（GMM）基础<a class="headerlink" href="#gmm" title="链接到此标题。"></a></h3>
-<p>**高斯混合模型（Gaussian Mixture Model, GMM）**是多个高斯分布的加权叠加：</p>
+<p><strong>高斯混合模型（Gaussian Mixture Model, GMM）</strong>是多个高斯分布的加权叠加：</p>
 <div class="math notranslate nohighlight">
 \[
 p(\mathbf{x}) = \sum_{k=1}^{K} \pi_k \,\mathcal{N}(\mathbf{x};\, \boldsymbol{\mu}_k, \boldsymbol{\Sigma}_k)

@@ -12,6 +12,7 @@
       <link rel="stylesheet" type="text/css" href="_static/custom.css?v=9cc37e4b" />
 
   
+    <link rel="shortcut icon" href="_static/favicon.png"/>
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
       <script src="_static/documentation_options.js?v=1663b99f"></script>
@@ -37,6 +38,7 @@
           
           <a href="index.html" class="icon icon-home">
             三维高斯溅射（3DGS）完全教程
+              <img src="_static/logo.jpg" class="logo" alt="Logo"/>
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -606,7 +608,7 @@
 <p>这是3DGS的关键数学步骤：将三维高斯椭球投影到相机图像平面，得到二维高斯椭圆。</p>
 <section id="affine-approximation">
 <h3>仿射近似（Affine Approximation）<a class="headerlink" href="#affine-approximation" title="链接到此标题。"></a></h3>
-<p>透视投影本身是非线性的（存在除以深度 <span class="math notranslate nohighlight">\(Z\)</span> 的操作），但在局部范围内可以用**一阶泰勒展开（雅可比近似）**线性化：</p>
+<p>透视投影本身是非线性的（存在除以深度 <span class="math notranslate nohighlight">\(Z\)</span> 的操作），但在局部范围内可以用<strong>一阶泰勒展开（雅可比近似）</strong>线性化：</p>
 <div class="math notranslate nohighlight">
 \[\mathbf{x} = \pi(\mathbf{X}) \approx \pi(\boldsymbol{\mu}) + J(\mathbf{X} - \boldsymbol{\mu})\]</div>
 <p>其中 <span class="math notranslate nohighlight">\(J\)</span> 是投影函数 <span class="math notranslate nohighlight">\(\pi\)</span> 在高斯中心 <span class="math notranslate nohighlight">\(\boldsymbol{\mu}\)</span> 处的<strong>雅可比矩阵</strong>。</p>

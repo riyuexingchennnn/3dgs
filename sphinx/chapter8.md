@@ -154,7 +154,7 @@ ffmpeg -i input_video.mp4 images/%04d.jpg
 ls images/ | wc -l
 ```
 
-**建议图像数量：**100-500张（太少覆盖不足，太多COLMAP很慢）
+<strong>建议图像数量：</strong>100-500张（太少覆盖不足，太多COLMAP很慢）
 
 ### COLMAP 自动重建流程
 

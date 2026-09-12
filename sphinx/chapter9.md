@@ -11,7 +11,7 @@
 ### 代表工作
 
 **Scaffold-GS**（CVPR 2024，[arXiv:2312.00109](https://arxiv.org/abs/2312.00109)）  
-核心思想：引入**锚点（Anchor）**作为中间层，每个锚点生成若干**神经高斯（Neural Gaussians）**，通过MLP预测而非直接存储。
+核心思想：引入<strong>锚点（Anchor）</strong>作为中间层，每个锚点生成若干**神经高斯（Neural Gaussians）**，通过MLP预测而非直接存储。
 
 - 锚点数量 << 高斯数量，大幅减少存储
 - 神经高斯的属性通过特征向量+MLP动态生成，表达能力更强
