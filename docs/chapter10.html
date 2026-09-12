@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>第十章 前沿与改进 - 三维高斯溅射（3DGS）完全教程</title>
+<script>
+window.MathJax = {
+  tex: {
+    inlineMath: [['$', '$'], ['\\(', '\\)']],
+    displayMath: [['$$', '$$'], ['\\[', '\\]']]
+  },
+  options: {
+    skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+  }
+};
+</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<style>
+  :root { --fg:#1f2328; --muted:#59636e; --accent:#0969da; --border:#d1d9e0; --bg:#ffffff; --code:#f6f8fa; }
+  @media (prefers-color-scheme: dark) {
+    :root { --fg:#e6edf3; --muted:#9198a1; --accent:#4493f8; --border:#3d444d; --bg:#0d1117; --code:#161b22; }
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--fg);
+    font-family: -apple-system, "Noto Sans CJK SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+    line-height:1.85; font-size:16px; }
+  header { border-bottom:1px solid var(--border); padding:14px 20px; position:sticky; top:0;
+    background:var(--bg); z-index:10; }
+  header a.brand { color:var(--fg); font-weight:700; text-decoration:none; font-size:17px; }
+  nav { margin-top:10px; display:flex; flex-wrap:wrap; gap:8px 14px; font-size:13.5px; }
+  nav a { color:var(--muted); text-decoration:none; }
+  nav a:hover { color:var(--accent); }
+  main { max-width:900px; margin:0 auto; padding:32px 20px 80px; }
+  h1 { font-size:1.85em; border-bottom:1px solid var(--border); padding-bottom:.35em; margin-top:1.4em; }
+  h2 { font-size:1.45em; border-bottom:1px solid var(--border); padding-bottom:.3em; margin-top:1.6em; }
+  h3 { font-size:1.2em; margin-top:1.5em; }
+  a { color:var(--accent); }
+  img { max-width:100%; height:auto; display:block; margin:18px auto; border-radius:6px; }
+  code { background:var(--code); padding:.18em .38em; border-radius:5px; font-size:.9em;
+    font-family: ui-monospace, "SFMono-Regular", Consolas, monospace; }
+  pre { background:var(--code); padding:14px 16px; border-radius:8px; overflow:auto; }
+  pre code { background:none; padding:0; }
+  blockquote { margin:16px 0; padding:6px 16px; border-left:4px solid var(--border); color:var(--muted); }
+  table { border-collapse:collapse; width:100%; margin:16px 0; font-size:14.5px; display:block; overflow-x:auto; }
+  th, td { border:1px solid var(--border); padding:8px 12px; text-align:left; }
+  th { background:var(--code); }
+  hr { border:0; border-top:1px solid var(--border); margin:32px 0; }
+  .pager { display:flex; justify-content:space-between; margin-top:56px; padding-top:20px;
+    border-top:1px solid var(--border); font-size:14.5px; }
+  mjx-container[display="true"] { overflow-x:auto; overflow-y:hidden; }
+</style>
+</head>
+<body>
+<header>
+  <a class="brand" href="index.html">三维高斯溅射（3DGS）完全教程</a>
+  <nav><a href="index.html">首页 / 总目录</a><a href="chapter1.html">第一章 三维重建是什么</a><a href="chapter2.html">第二章 相机与投影</a><a href="chapter3.html">第三章 辐射场与 NeRF</a><a href="chapter4.html">第四章 三维高斯表示</a><a href="chapter5.html">第五章 球谐函数</a><a href="chapter6.html">第六章 可微光栅化</a><a href="chapter7.html">第七章 训练与优化</a><a href="chapter8.html">第八章 工程实现</a><a href="chapter9.html">第九章 评估与对比</a><a href="chapter10.html">第十章 前沿与改进</a></nav>
+</header>
+<main>
+<h1>第十章：成为贡献者——如何迭代改进系统</h1>
+<blockquote>
+<p>读懂代码只是起点。本章讲如何在3DGS基础上做出真正的贡献。</p>
+</blockquote>
+<hr />
+<h2>10.1 建立可复现的实验基线</h2>
+<h3>可复现性是一切的前提</h3>
+<p>在改进任何系统之前，首先要有一个<strong>可靠、可复现的基线（Baseline）</strong>。听起来简单，但实践中大量时间都浪费在"我不确定这次结果变好了是因为我的改动还是随机性"。</p>
+<p><strong>建立基线的工程规范：</strong></p>
+<p>```
+project/
+├── configs/
+│   ├── base_config.yaml    # 所有实验共享的默认参数
+│   └── exp_001_lr_tuning.yaml  # 实验特定的参数覆盖
+├── runs/
+│   ├── baseline_garden_20240601/  # 每次运行用日期+描述命名
+│   └── exp_001_garden_20240605/
+├── results/
+│   └── comparison_table.csv    # 所有实验结果汇总
+└── scripts/
+    └── run_baseline.sh
+```</p>
+<p><strong>使用 Hydra 管理配置：</strong></p>
+<p>```yaml
+# base_config.yaml
+model:
+  sh_degree: 3
+  iterations: 30000
+training:
+  densify_grad_threshold: 0.0002
+  lambda_dssim: 0.2
+dataset:
+  path: data/garden
+  resolution: 1
+```</p>
+<p><strong>版本控制原则：</strong></p>
+<ol>
+<li>每个实验前打一个 git tag（`git tag exp_001_lr_tuning`）</li>
+<li>实验配置文件进 git</li>
+<li>实验结果不进 git（用 DVC 或 Wandb 管理大文件）</li>
+<li>commit message 写清楚"什么改动、为什么改、预期效果"</li>
+</ol>
+<p><strong>统一随机种子：</strong></p>
+<p>```python
+import random, numpy as np, torch
+def seed_everything(seed=42):
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+```</p>
+<p><strong>思考题</strong>：两次使用相同参数训练同一场景，PSNR 相差 0.3 dB。这个差异是"随机性"还是"真实差异"？如何设计实验来区分？（提示：多次运行取平均，计算标准差）</p>
+<hr />
+<h2>10.2 定位性能瓶颈</h2>
+<h3>CUDA Profiling</h3>
+<p>在修改代码之前，先<strong>测量</strong>，不要猜测瓶颈在哪里。</p>
+<p><strong>Nsight Systems（NVIDIA，最全面）：</strong></p>
+<p>```bash
+# 记录 CUDA 时间线
+nsys profile -o profile_output python train.py -s data/garden --iterations 100
+
+# 用图形界面分析
+nsys-ui profile_output.nsys-rep
+```</p>
+<p><strong>PyTorch Profiler（集成方便）：</strong></p>
+<p>```python
+from torch.profiler import profile, ProfilerActivity, tensorboard_trace_handler
+
+with profile(
+    activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA],
+    on_trace_ready=tensorboard_trace_handler('./log/profiler'),
+    record_shapes=True,
+    with_stack=True
+) as prof:
+    # 运行几步训练
+    for i in range(10):
+        train_one_step()
+
+print(prof.key_averages().table(sort_by="cuda_time_total", row_limit=20))
+```</p>
+<p><strong>典型3DGS各阶段时间占比（30k迭代，室内场景）：</strong></p>
+<table>
+<thead>
+<tr>
+<th>阶段</th>
+<th>时间占比</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>前向渲染（CUDA光栅化）</td>
+<td>~45%</td>
+</tr>
+<tr>
+<td>反向传播</td>
+<td>~40%</td>
+</tr>
+<tr>
+<td>ADC（排序+剪枝）</td>
+<td>~5%</td>
+</tr>
+<tr>
+<td>数据加载</td>
+<td>~5%</td>
+</tr>
+<tr>
+<td>其他</td>
+<td>~5%</td>
+</tr>
+</tbody>
+</table>
+<p>前向+反向占85%，是性能优化的主战场。</p>
+<h3>内存带宽 vs 计算瓶颈</h3>
+<p>现代GPU的计算能力（TFLOPS）通常远大于内存带宽（GB/s）。判断瓶颈类型：</p>
+<ul>
+<li><strong>计算瓶颈（Compute-bound）</strong>：GPU利用率高（&gt;90%），修改算法减少浮点操作</li>
+<li><strong>内存带宽瓶颈（Memory-bound）</strong>：GPU利用率低，大量时间在等数据。解决方案：提高数据局部性（共享内存）、减少全局内存访问</li>
+</ul>
+<p>3DGS 的排序（Radix Sort）是典型的内存带宽瓶颈；光栅化核心（Alpha合成）接近计算瓶颈。</p>
+<p><img alt="图10.2 GPU Profiling结果示意" src="pic/ch10_fig2.png" /></p>
+<p><strong>思考题</strong>：gsplat 相比官方实现在内存占用上减少了约30%。查阅 gsplat 的 release notes，找出主要的内存优化是在哪里实现的？</p>
+<hr />
+<h2>10.3 修改高斯基元的正确姿势</h2>
+<h3>添加新属性</h3>
+<p>假设你要给每个高斯添加一个<strong>语义标签</strong>（整数类别ID），步骤如下：</p>
+<p><strong>1. 在 GaussianModel 中添加参数：</strong></p>
+<p>```python
+# scene/gaussian_model.py
+
+class GaussianModel:
+    def __init__(self, sh_degree):
+        # ... 原有参数 ...
+        self._semantic_label = torch.empty(0)  # 新增语义标签
+
+    def create_from_pcd(self, pcd, spatial_lr_scale):
+        # ... 原有初始化 ...
+        # 初始化为0（未知类别）
+        self._semantic_label = torch.zeros(
+            (fused_point_cloud.shape[0],), dtype=torch.long
+        ).to(device)
+
+    @property
+    def get_semantic_label(self):
+        return self._semantic_label
+```</p>
+<p><strong>2. 在 PLY 保存/加载中添加对应字段：</strong></p>
+<p>```python
+def save_ply(self, path):
+    # 原有字段保存 ...
+    semantic = self._semantic_label.cpu().numpy().astype(np.uint8)
+    # 加入到 elements 列表
+```</p>
+<p><strong>3. 如果需要可微，加入 optimizer：</strong></p>
+<p>```python
+def training_setup(self, training_args):
+    l = [
+        # ... 原有参数组 ...
+        {'params': [self._semantic_label], 'lr': 0.001, "name": "semantic"}
+    ]
+    self.optimizer = torch.optim.Adam(l, lr=0.0)
+```</p>
+<h3>修改梯度流</h3>
+<p>如果要修改反向传播中梯度的计算方式（比如加入梯度裁剪或自定义梯度），需要了解3DGS梯度流的关键路径：</p>
+<p>```
+渲染损失 L
+  └─→ 渲染图像 I_hat
+       └─→ CUDA光栅化器（前向/反向）
+            └─→ 各高斯的 2D 贡献（μ', Σ', α, c）
+                 └─→ 球谐系数 f（颜色梯度）
+                 └─→ 不透明度 o（不透明度梯度）
+                 └─→ 协方差 Σ（形状梯度）
+                      └─→ 旋转 q 和缩放 s
+                 └─→ 位置 μ（位置梯度）
+```</p>
+<p><strong>CUDA 扩展的修改：</strong> 如需修改光栅化本身（如加入深度平滑正则化），需要修改 `backward.cu`，这需要 CUDA 编程基础。推荐先阅读 gsplat 的实现（代码更清晰），再参考修改。</p>
+<p><strong>思考题</strong>：你想给高斯添加"法线向量"属性，并在训练中加入法线一致性损失。法线向量的梯度会影响哪些参数？需要修改 `backward.cu` 吗？</p>
+<hr />
+<h2>10.4 替代库：gsplat 与 nerfstudio</h2>
+<h3>gsplat：高性能 3DGS 后端</h3>
+<p><a href="https://github.com/nerfstudio-project/gsplat">gsplat</a> 是 Nerfstudio 团队开发的3DGS后端，已成为社区最广泛使用的替代实现。</p>
+<p><strong>优势：</strong>
+- 内存效率：比官方实现低约30%内存占用
+- API清晰：Python优先，更易于自定义扩展
+- 活跃维护：修复官方实现的已知bug
+- 支持非标准相机：鱼眼、全景相机</p>
+<p>```python
+# gsplat 的核心 API
+from gsplat import rasterization
+
+renders, alphas, info = rasterization(
+    means=means3D,
+    quats=rotations,
+    scales=scales,
+    opacities=opacities,
+    colors=colors,
+    viewmats=viewmats,
+    Ks=intrinsics,
+    width=W, height=H,
+    render_mode="RGB+D",  # 同时渲染颜色和深度
+)
+```</p>
+<h3>nerfstudio：模块化训练框架</h3>
+<p><a href="https://github.com/nerfstudio-project/nerfstudio">nerfstudio</a> 提供了一套完整的NeRF/3DGS训练框架，内置 <strong>Splatfacto</strong>（3DGS实现）。</p>
+<p>优势：统一的实验管理、内置可视化、配置系统完善。</p>
+<p>```bash
+# 安装 nerfstudio
+pip install nerfstudio
+
+# 用 Splatfacto（3DGS）训练
+ns-train splatfacto --data data/garden/
+
+# 实时可视化
+ns-viewer --load-config outputs/.../config.yml
+```</p>
+<h3>Gaussian Opacity Fields（GOF）</h3>
+<p>GOF 用<strong>不透明度场</strong>替代显式alpha，允许从高斯场中提取精确的等值面（网格）。适合需要精确几何的任务。</p>
+<p>```python
+# GOF 的核心思想：高斯贡献的不透明度场
+def opacity_field(x, gaussians):
+    contributions = []
+    for g in gaussians:
+        # 每个高斯的不透明度贡献
+        d = x - g.mu
+        contrib = g.alpha * exp(-0.5 * d.T @ inv(g.Sigma) @ d)
+        contributions.append(contrib)
+    return sum(contributions)  # 可用于Marching Cubes
+```</p>
+<h3>3DGUT：通用非结构化相机</h3>
+<p><strong>3DGUT</strong>（NVIDIA 2025，<a href="https://arxiv.org/abs/2312.02121">arXiv:2312.02121</a>）扩展3DGS支持任意相机模型（鱼眼、全景、车载广角）。工业数据集（如自动驾驶）通常使用非标准相机，3DGUT是处理这类数据的重要工具。</p>
+<p><strong>思考题</strong>：nerfstudio 的 Splatfacto 和原版 gaussian-splatting 仓库在 PSNR 上有微小差异。查阅 nerfstudio 的文档，找出两者实现上的主要差异（初始化方式？损失函数？优化器设置？）</p>
+<hr />
+<h2>10.5 消融实验设计</h2>
+<p>消融实验（Ablation Study）是证明你的改进"真实有效"的核心手段。</p>
+<h3>控制变量原则</h3>
+<p>每次只改<strong>一个</strong>变量：</p>
+<p>```
+实验A：基准（原版3DGS）
+实验B：加入你的改进X，其他一切不变
+实验C：加入你的改进Y，其他一切不变  
+实验D：同时加入X和Y
+```</p>
+<p>比较 A→B→C→D 的结果，才能分离每个改进的贡献。</p>
+<h3>指标选取</h3>
+<ul>
+<li><strong>通用NVS指标</strong>：PSNR / SSIM / LPIPS（必须报告）</li>
+<li><strong>任务特定指标</strong>：几何任务加Chamfer Distance；SLAM任务加ATE（绝对轨迹误差）；分割任务加mIoU</li>
+<li><strong>效率指标</strong>：训练时间、渲染FPS、显存占用、模型大小</li>
+</ul>
+<p><strong>不要只报告最好的数字</strong>——应在多个数据集上测试，报告平均值和标准差。</p>
+<h3>统计显著性</h3>
+<p>3DGS训练有随机性（Adam的随机性、初始化随机性），同一配置多次运行结果会有波动。</p>
+<p><strong>建议：</strong> 至少运行3次，报告均值±标准差：</p>
+<p>```
+我们的方法在garden场景上PSNR为27.8±0.2 dB，
+基准为27.4±0.2 dB，提升0.4 dB，t检验p<0.05，统计显著。
+```</p>
+<p>如果PSNR提升只有0.1 dB但方差是0.3 dB，提升就<strong>不显著</strong>。</p>
+<p><strong>思考题</strong>：你提出了一个改进X，在5个场景中，3个场景PSNR提升，2个场景下降。这个改进是"成功"的吗？如何在论文中诚实地报告这个结果？</p>
+<hr />
+<h2>10.6 开源与投稿建议</h2>
+<h3>顶会截止日期（2024-2026年参考）</h3>
+<table>
+<thead>
+<tr>
+<th>会议</th>
+<th>论文截止（通常）</th>
+<th>通知时间</th>
+<th>举办时间</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CVPR</td>
+<td>11月</td>
+<td>2月</td>
+<td>6月</td>
+</tr>
+<tr>
+<td>ICCV</td>
+<td>3月</td>
+<td>7月</td>
+<td>10月（奇数年）</td>
+</tr>
+<tr>
+<td>ECCV</td>
+<td>3月</td>
+<td>7月</td>
+<td>10月（偶数年）</td>
+</tr>
+<tr>
+<td>SIGGRAPH</td>
+<td>1月</td>
+<td>4月</td>
+<td>8月</td>
+</tr>
+<tr>
+<td>NeurIPS</td>
+<td>5月</td>
+<td>9月</td>
+<td>12月</td>
+</tr>
+<tr>
+<td>ICLR</td>
+<td>10月</td>
+<td>1月</td>
+<td>5月</td>
+</tr>
+</tbody>
+</table>
+<p><strong>建议优先投 arXiv</strong>（不管是否投顶会），让社区尽早看到你的工作，收集反馈。</p>
+<h3>代码整洁度标准</h3>
+<p>开源代码是第二份"论文"，质量直接影响引用量：</p>
+<p>```
+✓ 有详细的 README（安装、数据集、训练、测试命令）
+✓ 有 requirements.txt 或 environment.yaml
+✓ 核心逻辑有简短注释（但不要过度注释）
+✓ 提供预训练模型（供快速复现）
+✓ 有 demo 脚本（5行代码跑通基本功能）
+✗ 避免 hardcode 路径（用 argparse 或 config）
+✗ 避免未使用的 import 和注释掉的代码
+```</p>
+<h3>README 写法</h3>
+<p>好的 README 结构：</p>
+<p>```markdown
+# 论文标题
+
+[论文链接] [项目主页] [视频演示] [引用BibTeX]
+
+## 效果展示（放最好的图）
+
+## 安装
+
+## 快速开始（3步跑通demo）
+
+## 训练
+
+## 评估
+
+## 预训练模型下载
+```</p>
+<h3>社区协作</h3>
+<ul>
+<li><strong>Issue</strong>：用户反馈的bug及时回复（&lt;7天），是口碑的关键</li>
+<li><strong>Pull Request</strong>：接受合理的改进PR，注明贡献者</li>
+<li><strong>Discussion</strong>：参与3DGS相关的 Discord（如 <a href="https://discord.gg/3dgs">3DGS Discord</a>）和 Twitter 讨论</li>
+</ul>
+<p><strong>思考题</strong>：你的论文被顶会接收了，但代码还没准备好开源。应该在接收通知后多久内开源代码？不开源会有什么影响？</p>
+<hr />
+<h2>10.7 推荐学习资源汇总</h2>
+<h3>论文阅读路径（建议顺序）</h3>
+<p><strong>入门必读（按顺序）：</strong></p>
+<ol>
+<li>NeRF (2020) — 理解体渲染和可微渲染</li>
+<li>Instant-NGP (2022) — 了解加速NeRF的思路</li>
+<li>3DGS (2023) — 核心论文，反复读</li>
+<li>Scaffold-GS (2024) — 了解一种主流改进方向</li>
+<li>2DGS (2024) — 了解几何改进方向</li>
+</ol>
+<p><strong>进阶精读（按兴趣选择）：</strong></p>
+<ul>
+<li>压缩方向：LightGaussian、Mini-Splatting</li>
+<li>动态场景：4D Gaussians、Deformable 3DGS</li>
+<li>语义理解：Gaussian Grouping、Feature 3DGS</li>
+<li>工业应用：HUGSIM、DrivingGaussian</li>
+</ul>
+<h3>精选课程</h3>
+<table>
+<thead>
+<tr>
+<th>课程</th>
+<th>平台</th>
+<th>特点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Stanford CS231A</td>
+<td>YouTube</td>
+<td>相机几何权威教程</td>
+</tr>
+<tr>
+<td>CMU 16-385</td>
+<td>YouTube</td>
+<td>完整计算机视觉</td>
+</tr>
+<tr>
+<td>Fast.ai Practical Deep Learning</td>
+<td>fast.ai</td>
+<td>最实用的深度学习入门</td>
+</tr>
+<tr>
+<td>Nerfstudio Workshop</td>
+<td>YouTube</td>
+<td>3DGS工程实践</td>
+</tr>
+</tbody>
+</table>
+<h3>活跃研究组（关注他们的论文）</h3>
+<table>
+<thead>
+<tr>
+<th>研究组</th>
+<th>机构</th>
+<th>代表工作</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>INRIA GraphDeco</td>
+<td>法国国家信息研究院</td>
+<td>原版3DGS</td>
+</tr>
+<tr>
+<td>Nerfstudio团队</td>
+<td>UC Berkeley</td>
+<td>gsplat, nerfstudio</td>
+</tr>
+<tr>
+<td>汤晓鸥团队</td>
+<td>商汤/CUHK</td>
+<td>GaussianAvatars, SuGaR</td>
+</tr>
+<tr>
+<td>Christian Theobalt团队</td>
+<td>MPI</td>
+<td>Relightable 3DGS</td>
+</tr>
+<tr>
+<td>陈宝权团队</td>
+<td>北京大学</td>
+<td>VastGaussian, CityGaussian</td>
+</tr>
+<tr>
+<td>Qianqian Wang</td>
+<td>Cornell</td>
+<td>4D Gaussians</td>
+</tr>
+</tbody>
+</table>
+<h3>中文社区</h3>
+<ul>
+<li><strong>知乎专栏</strong>：搜索"3DGS"，有大量中文解读和入门教程</li>
+<li><strong>B站</strong>：多个UP主有3DGS视频教程（原理+实操）</li>
+<li><strong>微信公众号</strong>：极市平台、CVer、3D视觉工坊</li>
+</ul>
+<p><img alt="图10.1 实验管理工作流" src="pic/ch10_fig1.png" />
+<img alt="图10.3 3DGS社区生态图" src="pic/ch10_fig3.png" /></p>
+<hr />
+<h2>全书总结</h2>
+<p>恭喜你读完这本教程！回顾整个学习旅程：</p>
+<p><strong>你已经掌握的：</strong></p>
+<ul>
+<li>从照片到三维的基本原理（相机模型、SfM、COLMAP）</li>
+<li>高斯函数、球谐函数的数学基础</li>
+<li>体渲染、Alpha合成的理论推导</li>
+<li>3DGS完整算法：参数定义→投影→光栅化→ADC→损失</li>
+<li>代码结构、训练评估、常见报错排查</li>
+<li>数据采集、训练调参、部署的完整实践流程</li>
+<li>2023-2026年主流改进方向的系统认知</li>
+</ul>
+<p><strong>你现在能做的：</strong></p>
+<ol>
+<li>用自己的数据训练高质量3DGS场景</li>
+<li>阅读并理解领域前沿论文</li>
+<li>在现有代码基础上添加新功能、设计消融实验</li>
+<li>参与社区讨论，贡献开源代码</li>
+</ol>
+<p><strong>3DGS领域还在快速发展</strong>，当你读到这里时，可能又有新的突破性工作出现了。带着本书建立的基础，你已经具备追踪前沿、参与贡献的能力。</p>
+<blockquote>
+<p>学习3DGS最好的时机是三年前，其次是现在。动手吧！</p>
+</blockquote>
+<hr />
+<h2>本章小结</h2>
+<ul>
+<li>可复现基线：Hydra配置管理、git版本控制、统一随机种子</li>
+<li>Profiling：Nsight Systems + PyTorch Profiler，前向+反向占85%时间</li>
+<li>修改高斯基元：GaussianModel添加属性、optimizer注册、PLY格式更新</li>
+<li>工具生态：gsplat（高性能后端）、nerfstudio（完整框架）、3DGUT（非标准相机）</li>
+<li>消融实验：控制变量、多指标、多次运行报统计显著性</li>
+<li>开源：好README + 预训练模型 + 及时响应issue</li>
+</ul>
+<hr />
+<h2>推荐阅读</h2>
+<ul>
+<li><a href="https://missing.csail.mit.edu/">The Missing Semester of Your CS Education</a>（MIT）— 工程规范基础</li>
+<li>Goodfellow et al., "Deep Learning" — 第8章优化器，第9章正则化</li>
+<li><a href="https://www.cs.mcgill.ca/~jpineau/ReproducibilityChecklist.pdf">ML Reproducibility Checklist</a> — 机器学习可复现性标准清单</li>
+</ul>
+<hr />
+<p><em>上一章：<a href="chapter9.html">第九章：主流改进方向与前沿论文（截至 2026 年中）</a></em></p>
+<div class="pager"><a href="chapter9.html">← 第九章 评估与对比</a></div>
+</main>
+</body>
+</html>

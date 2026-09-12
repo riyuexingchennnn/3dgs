@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>第九章 评估与对比 - 三维高斯溅射（3DGS）完全教程</title>
+<script>
+window.MathJax = {
+  tex: {
+    inlineMath: [['$', '$'], ['\\(', '\\)']],
+    displayMath: [['$$', '$$'], ['\\[', '\\]']]
+  },
+  options: {
+    skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+  }
+};
+</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<style>
+  :root { --fg:#1f2328; --muted:#59636e; --accent:#0969da; --border:#d1d9e0; --bg:#ffffff; --code:#f6f8fa; }
+  @media (prefers-color-scheme: dark) {
+    :root { --fg:#e6edf3; --muted:#9198a1; --accent:#4493f8; --border:#3d444d; --bg:#0d1117; --code:#161b22; }
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--fg);
+    font-family: -apple-system, "Noto Sans CJK SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+    line-height:1.85; font-size:16px; }
+  header { border-bottom:1px solid var(--border); padding:14px 20px; position:sticky; top:0;
+    background:var(--bg); z-index:10; }
+  header a.brand { color:var(--fg); font-weight:700; text-decoration:none; font-size:17px; }
+  nav { margin-top:10px; display:flex; flex-wrap:wrap; gap:8px 14px; font-size:13.5px; }
+  nav a { color:var(--muted); text-decoration:none; }
+  nav a:hover { color:var(--accent); }
+  main { max-width:900px; margin:0 auto; padding:32px 20px 80px; }
+  h1 { font-size:1.85em; border-bottom:1px solid var(--border); padding-bottom:.35em; margin-top:1.4em; }
+  h2 { font-size:1.45em; border-bottom:1px solid var(--border); padding-bottom:.3em; margin-top:1.6em; }
+  h3 { font-size:1.2em; margin-top:1.5em; }
+  a { color:var(--accent); }
+  img { max-width:100%; height:auto; display:block; margin:18px auto; border-radius:6px; }
+  code { background:var(--code); padding:.18em .38em; border-radius:5px; font-size:.9em;
+    font-family: ui-monospace, "SFMono-Regular", Consolas, monospace; }
+  pre { background:var(--code); padding:14px 16px; border-radius:8px; overflow:auto; }
+  pre code { background:none; padding:0; }
+  blockquote { margin:16px 0; padding:6px 16px; border-left:4px solid var(--border); color:var(--muted); }
+  table { border-collapse:collapse; width:100%; margin:16px 0; font-size:14.5px; display:block; overflow-x:auto; }
+  th, td { border:1px solid var(--border); padding:8px 12px; text-align:left; }
+  th { background:var(--code); }
+  hr { border:0; border-top:1px solid var(--border); margin:32px 0; }
+  .pager { display:flex; justify-content:space-between; margin-top:56px; padding-top:20px;
+    border-top:1px solid var(--border); font-size:14.5px; }
+  mjx-container[display="true"] { overflow-x:auto; overflow-y:hidden; }
+</style>
+</head>
+<body>
+<header>
+  <a class="brand" href="index.html">三维高斯溅射（3DGS）完全教程</a>
+  <nav><a href="index.html">首页 / 总目录</a><a href="chapter1.html">第一章 三维重建是什么</a><a href="chapter2.html">第二章 相机与投影</a><a href="chapter3.html">第三章 辐射场与 NeRF</a><a href="chapter4.html">第四章 三维高斯表示</a><a href="chapter5.html">第五章 球谐函数</a><a href="chapter6.html">第六章 可微光栅化</a><a href="chapter7.html">第七章 训练与优化</a><a href="chapter8.html">第八章 工程实现</a><a href="chapter9.html">第九章 评估与对比</a><a href="chapter10.html">第十章 前沿与改进</a></nav>
+</header>
+<main>
+<h1>第九章：主流改进方向与前沿论文（截至 2026 年中）</h1>
+<blockquote>
+<p>原版3DGS是起点，不是终点。本章系统梳理2023年至今最重要的改进方向。</p>
+</blockquote>
+<hr />
+<h2>9.1 高效表示与压缩</h2>
+<p><strong>问题</strong>：原版3DGS一个场景需要300-800MB，在移动端、网页端或多场景应用中不可接受。</p>
+<h3>代表工作</h3>
+<p><strong>Scaffold-GS</strong>（CVPR 2024，<a href="https://arxiv.org/abs/2312.00109">arXiv:2312.00109</a>）<br />
+核心思想：引入<strong>锚点（Anchor）</strong>作为中间层，每个锚点生成若干<strong>神经高斯（Neural Gaussians）</strong>，通过MLP预测而非直接存储。</p>
+<ul>
+<li>锚点数量 &lt;&lt; 高斯数量，大幅减少存储</li>
+<li>神经高斯的属性通过特征向量+MLP动态生成，表达能力更强</li>
+<li>PSNR 比原版高约 0.5-1 dB，高斯数量减少 30-50%</li>
+<li>后续工作 Octree-GS 在 Scaffold-GS 基础上加入八叉树层次结构</li>
+</ul>
+<p><strong>Mini-Splatting</strong>（ECCV 2024，<a href="https://arxiv.org/abs/2403.14166">arXiv:2403.14166</a>）<br />
+将高斯数量压缩到原版的 <strong>0.2%</strong>（200万→4000个），通过重要性采样选取关键高斯。</p>
+<p><strong>LightGaussian</strong>（NeurIPS 2024，<a href="https://arxiv.org/abs/2311.17245">arXiv:2311.17245</a>）<br />
+训练后剪枝+蒸馏，在保持80% PSNR的前提下，模型压缩至原版10-20%大小。</p>
+<p><strong>gsplat 库</strong>（持续更新，<a href="https://github.com/nerfstudio-project/gsplat">github.com/nerfstudio-project/gsplat</a>）<br />
+不是论文而是工程工具：提供比官方实现更高效的CUDA光栅化器（内存占用降低约30%），且 API 更易于二次开发。</p>
+<table>
+<thead>
+<tr>
+<th>方法</th>
+<th>压缩比</th>
+<th>PSNR损失</th>
+<th>特点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>原版3DGS</td>
+<td>1×</td>
+<td>0</td>
+<td>基准</td>
+</tr>
+<tr>
+<td>LightGaussian</td>
+<td>5-10×</td>
+<td>~0.5 dB</td>
+<td>训练后压缩</td>
+</tr>
+<tr>
+<td>Scaffold-GS</td>
+<td>1.5-2×</td>
+<td>+0.5 dB（更好）</td>
+<td>训练时优化表示</td>
+</tr>
+<tr>
+<td>Mini-Splatting</td>
+<td>500×</td>
+<td>~3 dB</td>
+<td>极限压缩</td>
+</tr>
+</tbody>
+</table>
+<p><strong>思考题</strong>：Scaffold-GS 的锚点 + 神经高斯架构，实质上引入了 MLP（类似NeRF）。这是不是在"退化"回NeRF？它和NeRF的根本区别是什么？</p>
+<hr />
+<h2>9.2 几何与表面重建</h2>
+<p><strong>问题</strong>：3DGS 用体积高斯基元表示场景，从中提取精确的三维表面（网格）很困难。高斯椭球不在表面上，也不贴合表面。</p>
+<h3>代表工作</h3>
+<p><strong>2DGS</strong>（SIGGRAPH 2024，<a href="https://arxiv.org/abs/2403.17888">arXiv:2403.17888</a>）<br />
+将三维高斯<strong>椭球</strong>替换为二维高斯<strong>圆盘（Disk/Surfel）</strong>。二维高斯天然贴合表面，从而：</p>
+<ul>
+<li>几何重建质量显著提升（Chamfer Distance减少40%以上）</li>
+<li>网格提取更简单（TSDF融合效果更好）</li>
+<li>代价：相同场景需要更多高斯基元</li>
+</ul>
+<p><strong>Gaussian Opacity Fields (GOF)</strong>（NeurIPS 2024，<a href="https://arxiv.org/abs/2404.10772">arXiv:2404.10772</a>）<br />
+在高斯基元上定义连续的不透明度场，允许直接用等值面（Marching Cubes）提取网格，质量接近NeRF级别的网格重建。</p>
+<p><strong>SuGaR</strong>（CVPR 2024，<a href="https://arxiv.org/abs/2311.12775">arXiv:2311.12775</a>）<br />
+Surface Gaussian Regularization：在3DGS训练中加入正则化项，鼓励高斯基元贴合表面，然后用泊松重建提取网格。</p>
+<table>
+<thead>
+<tr>
+<th>方法</th>
+<th>渲染质量</th>
+<th>几何质量</th>
+<th>速度</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>原版3DGS</td>
+<td>极高</td>
+<td>差</td>
+<td>实时</td>
+</tr>
+<tr>
+<td>2DGS</td>
+<td>高</td>
+<td>好</td>
+<td>实时</td>
+</tr>
+<tr>
+<td>GOF</td>
+<td>高</td>
+<td>很好</td>
+<td>接近实时</td>
+</tr>
+<tr>
+<td>SuGaR</td>
+<td>中</td>
+<td>中</td>
+<td>慢</td>
+</tr>
+</tbody>
+</table>
+<p><img alt="图9.2 2DGS 与 3DGS 几何表示对比" src="pic/ch9_fig2.png" /></p>
+<p><strong>思考题</strong>：2DGS 用圆盘替换椭球，意味着每个基元少了一个维度的自由度。这在表示有厚度的半透明物体（如玻璃、头发）时会遇到什么问题？</p>
+<hr />
+<h2>9.3 动态场景与视频</h2>
+<p><strong>问题</strong>：原版3DGS假设静态场景，无法处理视频中的运动物体。</p>
+<h3>代表工作</h3>
+<p><strong>4D Gaussians</strong>（ICLR 2024，<a href="https://arxiv.org/abs/2310.17914">arXiv:2310.17914</a>）<br />
+在高斯基元中加入<strong>时间维度</strong>：每个高斯有一个随时间变化的变形场（Deformation Field），用小型MLP预测时刻 $t$ 时的位置/形状偏移。</p>
+<p><strong>Deformable 3D Gaussians</strong>（CVPR 2024，<a href="https://arxiv.org/abs/2309.13101">arXiv:2309.13101</a>）<br />
+类似思路，用MLP预测每个时间步的高斯变形，适合单目视频输入。</p>
+<p><strong>SplatFields</strong>（ECCV 2024，<a href="https://arxiv.org/abs/2409.11211">arXiv:2409.11211</a>）<br />
+用神经场（Neural Field）作为动态高斯的底层表示，支持更复杂的非刚性变形。</p>
+<p><strong>Dynamic 3DGS</strong>（CVPR 2024，<a href="https://arxiv.org/abs/2308.09713">arXiv:2308.09713</a>）<br />
+假设场景中刚体运动，每个高斯有独立的运动参数，适合机械、刚体场景。</p>
+<p><strong>2025年方向</strong>：物理驱动的动态高斯（PhysGaussian，加入弹性/塑性变形）、流体高斯（处理液体表面）正在快速发展。</p>
+<p><strong>思考题</strong>：动态3DGS通常需要<strong>密集的多视角视频</strong>（多相机同步）。如果只有单目视频（手机拍摄），重建动态场景会遇到什么根本性困难？（提示：深度歧义和运动歧义同时存在）</p>
+<hr />
+<h2>9.4 大场景与城市级重建</h2>
+<p><strong>问题</strong>：原版3DGS在大场景中（&gt;100米范围）会出现"高斯爆炸"（远处高斯退化）和内存溢出问题。</p>
+<h3>代表工作</h3>
+<p><strong>VastGaussian</strong>（CVPR 2024，<a href="https://arxiv.org/abs/2402.17427">arXiv:2402.17427</a>）<br />
+将大场景<strong>分块</strong>训练，每块独立优化，最后拼接。加入去天空处理和外观解耦（消除不同图像间的光照差异）。</p>
+<p><strong>CityGaussian</strong>（ECCV 2024，<a href="https://arxiv.org/abs/2404.01133">arXiv:2404.01133</a>）<br />
+自适应层次化（Level-of-Detail，LOD）高斯表示：远处用少而大的高斯，近处用多而小的高斯。支持城市级别（数平方公里）场景。</p>
+<p><strong>GaussianWorld</strong>（2025，<a href="https://arxiv.org/abs/2501.00316">arXiv:2501.00316</a>）<br />
+可扩展的开放世界场景表示，支持在线增量扩展（边探索边建图），具有语义感知的场景组织。</p>
+<p><strong>核心技术挑战：</strong></p>
+<table>
+<thead>
+<tr>
+<th>挑战</th>
+<th>解决思路</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>远处高斯退化</td>
+<td>球面映射（Sky Box）+ 场景规范化</td>
+</tr>
+<tr>
+<td>内存溢出</td>
+<td>流式训练（分块加载）</td>
+</tr>
+<tr>
+<td>光照不一致</td>
+<td>外观解耦（Appearance Decoupling）</td>
+</tr>
+<tr>
+<td>精细度不足</td>
+<td>LOD层次高斯</td>
+</tr>
+</tbody>
+</table>
+<p><strong>思考题</strong>：无人机俯拍城市的图像数据，与地面环绕拍摄的数据，在COLMAP重建时会遇到什么不同的挑战？如何设计拍摄轨迹来覆盖建筑的立面细节？</p>
+<hr />
+<h2>9.5 文本/图像驱动生成</h2>
+<p><strong>问题</strong>：3DGS需要大量真实图像作为输入。如果没有图像，能否从文本描述或单张图像直接生成3DGS场景？</p>
+<h3>代表工作</h3>
+<p><strong>GaussianDreamer</strong>（CVPR 2024，<a href="https://arxiv.org/abs/2312.14231">arXiv:2312.14231</a>）<br />
+用文本驱动的扩散模型（如 Stable Diffusion 3D）生成初始点云，然后用3DGS优化渲染质量。"从文字到可渲染3D场景"，约15分钟生成。</p>
+<p><strong>DreamGaussian</strong>（ICLR 2024，<a href="https://arxiv.org/abs/2309.16653">arXiv:2309.16653</a>）<br />
+从<strong>单张图像</strong>生成3DGS场景：先用diffusion model做360度图像补全，再用3DGS优化。约2分钟完成。</p>
+<p><strong>GaussianEditor</strong>（CVPR 2024，<a href="https://arxiv.org/abs/2311.14521">arXiv:2311.14521</a>）<br />
+文本驱动的场景编辑：输入"把椅子变成木质风格"，系统自动找到对应高斯并修改。</p>
+<p><strong>Instruct-GS2GS</strong>（ECCV 2024，<a href="https://arxiv.org/abs/2403.14302">arXiv:2403.14302</a>）<br />
+基于自然语言指令的3DGS场景编辑，利用InstructPix2Pix做图像级别编辑后反向优化高斯参数。</p>
+<p><strong>思考题</strong>：GaussianDreamer 生成的场景在"外观多样性"上与基于真实图像训练的3DGS有什么本质差异？生成内容为什么难以完全逼真？</p>
+<hr />
+<h2>9.6 语义理解与场景分析</h2>
+<p><strong>问题</strong>：原版3DGS只有外观信息（颜色），没有语义信息（这是椅子、那是桌子）。加入语义信息可以支持场景理解、目标检测、虚拟编辑等任务。</p>
+<h3>代表工作</h3>
+<p><strong>Gaussian Grouping</strong>（CVPR 2024，<a href="https://arxiv.org/abs/2312.00732">arXiv:2312.00732</a>）<br />
+无需额外标注，通过聚类3DGS高斯基元实现<strong>实例级别的语义分割</strong>。输入 Segment Anything Model (SAM) 的2D分割结果，在3D中一致性地传播到高斯层面，实现任意物体的3D选中和编辑。</p>
+<p><strong>Feature 3DGS</strong>（CVPR 2024，<a href="https://arxiv.org/abs/2312.03203">arXiv:2312.03203</a>）<br />
+将2D基础模型（CLIP、DINO、SAM）的<strong>特征向量蒸馏</strong>到3DGS高斯基元中，实现开放词汇查询（"找出所有椅子"）。</p>
+<p><strong>LangSplat</strong>（CVPR 2024，<a href="https://arxiv.org/abs/2312.16084">arXiv:2312.16084</a>）<br />
+将CLIP语言特征嵌入3DGS，支持自然语言驱动的3D目标定位。</p>
+<p><strong>OpenGaussian</strong>（2024，<a href="https://arxiv.org/abs/2406.11421">arXiv:2406.11421</a>）<br />
+开放词汇3D场景理解，支持任意语言查询定位三维物体。</p>
+<p><strong>思考题</strong>：Feature 3DGS 把2D特征蒸馏到3D高斯，蒸馏时如何处理同一个高斯从不同视角看到的特征不一致问题？（提示：类比球谐系数处理视角相关颜色的方式）</p>
+<hr />
+<h2>9.7 光照分解与重光照</h2>
+<p><strong>问题</strong>：原版3DGS将光照"烘焙"进球谐系数，更换光照环境需要重新训练。重光照（Relighting）是指在新的光照环境下渲染原场景。</p>
+<h3>代表工作</h3>
+<p><strong>Relightable 3DGS</strong>（NeurIPS 2024，<a href="https://arxiv.org/abs/2311.09897">arXiv:2311.09897</a>）<br />
+将每个高斯的外观分解为：漫反射颜色（Diffuse）、镜面反射参数（BRDF）、可见度（Visibility）。训练后可以在任意新光照下重新渲染。</p>
+<p><strong>GaussianShader</strong>（2024，<a href="https://arxiv.org/abs/2311.17977">arXiv:2311.17977</a>）<br />
+为3DGS加入可学习的着色器，建模高光、法线、粗糙度等PBR（基于物理的渲染）参数。</p>
+<p><strong>GS-IR</strong>（CVPR 2024，<a href="https://arxiv.org/abs/2311.16473">arXiv:2311.16473</a>）<br />
+从3DGS恢复材质（BRDF）和光照（环境贴图），支持重光照和材质编辑。</p>
+<p><strong>2025年趋势：</strong> 结合神经SDF和3DGS的混合方法，在高保真渲染和精确材质估计之间取得更好的平衡。</p>
+<p><strong>思考题</strong>：在有强烈镜面反射的场景（如不锈钢水壶），重光照时需要考虑<strong>互反射（Inter-reflection）</strong>（物体间相互反射光）。现有的重光照3DGS方法能处理这种效果吗？</p>
+<hr />
+<h2>9.8 人体与Avatar建模</h2>
+<p><strong>问题</strong>：人体是视频生成、VR/AR、虚拟试穿最重要的对象。用3DGS建模可驱动的人体模型是热点方向。</p>
+<h3>代表工作</h3>
+<p><strong>GaussianAvatars</strong>（CVPR 2024，<a href="https://arxiv.org/abs/2312.02069">arXiv:2312.02069</a>）<br />
+将高斯基元<strong>绑定到FLAME人脸模型</strong>上，通过驱动FLAME参数实现面部表情和头部姿态控制。高精度、实时渲染的人脸重建。</p>
+<p><strong>SplattingAvatar</strong>（CVPR 2024，<a href="https://arxiv.org/abs/2403.05087">arXiv:2403.05087</a>）<br />
+将高斯基元绑定到SMPL人体模型上，实现全身可驱动的人体Avatar。</p>
+<p><strong>Human Gaussian Splatting</strong>（CVPR 2024，<a href="https://arxiv.org/abs/2311.17113">arXiv:2311.17113</a>）<br />
+单目视频重建可动画的人体高斯模型，不需要多摄像机系统。</p>
+<p><strong>GPS-Gaussian</strong>（CVPR 2024，<a href="https://arxiv.org/abs/2312.02155">arXiv:2312.02155</a>）<br />
+实时生成任意姿态下的人体Gaussian Splatting，支持实时传输和渲染。</p>
+<p><strong>思考题</strong>：FLAME/SMPL模型是预建的参数化人体/人脸模型，有固定的拓扑结构。将高斯绑定到这类模型上，会在什么情况下失败？（提示：考虑衣物、头发、手持物品等非模型元素）</p>
+<hr />
+<h2>9.9 自动驾驶仿真</h2>
+<p><strong>问题</strong>：自动驾驶的感知模型需要大量训练数据，真实采集成本高。用3DGS重建真实驾驶场景，可以便宜地生成多样化训练数据。</p>
+<h3>代表工作</h3>
+<p><strong>HUGSIM</strong>（arXiv 2025，<a href="https://arxiv.org/abs/2501.12320">arXiv:2501.12320</a>）<br />
+统一的闭环自动驾驶仿真框架：重建驾驶场景，支持相机、LiDAR等多传感器模拟，支持闭环测试（仿真中控制车辆并实时渲染新视角）。</p>
+<p><strong>EmerNeRF</strong>（ICLR 2024，<a href="https://arxiv.org/abs/2311.02077">arXiv:2311.02077</a>）<br />
+将驾驶场景分解为静态背景（3DGS）和动态前景（时序高斯），并加入LiDAR深度监督。</p>
+<p><strong>DrivingGaussian</strong>（CVPR 2024，<a href="https://arxiv.org/abs/2312.07920">arXiv:2312.07920</a>）<br />
+专为驾驶场景设计的复合高斯表示：增量式重建沿途场景，支持动态物体的独立建模。</p>
+<p><strong>Street Gaussians</strong>（ECCV 2024，<a href="https://arxiv.org/abs/2401.01339">arXiv:2401.01339</a>）<br />
+将驾驶场景中的动态车辆用<strong>独立的3DGS模型</strong>表示，实现动态目标的精确重建和自由控制。</p>
+<p><strong>工业落地进展（2025）：</strong>
+- Wayve、Waymo等公司已将3DGS类方法用于感知训练数据增强
+- 传感器级别真实性（LiDAR点云统计一致性）是当前主要评测维度</p>
+<p><strong>思考题</strong>：在闭环仿真中，当自动驾驶车辆偏离原始录制轨迹时，3DGS需要渲染从<strong>训练时未曾见过</strong>的视角拍摄的场景。这种"外推渲染"会出现什么问题？如何缓解？</p>
+<hr />
+<h2>9.10 SLAM 与实时建图</h2>
+<p><strong>问题</strong>：传统3DGS需要预先收集所有图像（离线），无法支持机器人实时建图（SLAM）场景中的在线、增量建图需求。</p>
+<h3>代表工作</h3>
+<p><strong>3DGS-SLAM</strong>（CVPR 2024，<a href="https://arxiv.org/abs/2312.02126">arXiv:2312.02126</a>）<br />
+将3DGS场景表示与实时SLAM系统结合：相机位姿跟踪（Tracking）和场景建图（Mapping）交替进行，实现实时、增量式的3DGS建图。</p>
+<p><strong>SplaTAM</strong>（CVPR 2024，<a href="https://arxiv.org/abs/2312.02126">arXiv:2312.02126</a>）<br />
+简洁优雅的高斯SLAM实现，将整个SLAM流程简化为高斯基元的在线优化问题，在TUM RGB-D数据集上达到sota。</p>
+<p><strong>MonoGS</strong>（CVPR 2024，<a href="https://arxiv.org/abs/2405.06241">arXiv:2405.06241</a>）<br />
+<strong>单目</strong>（仅RGB，无深度传感器）的高斯SLAM，在未知相机位姿下实时建图，是最接近实用部署的方案。</p>
+<p><strong>在线建图的工程挑战：</strong></p>
+<table>
+<thead>
+<tr>
+<th>挑战</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>闭环检测</td>
+<td>重新访问已建图区域时需要纠正累积误差</td>
+</tr>
+<tr>
+<td>实时性</td>
+<td>Tracking和Mapping需在33ms内完成</td>
+</tr>
+<tr>
+<td>内存管理</td>
+<td>无限增长的高斯需要有上限策略</td>
+</tr>
+<tr>
+<td>一致性</td>
+<td>高斯更新时不能破坏已建图区域的质量</td>
+</tr>
+</tbody>
+</table>
+<p><strong>思考题</strong>：3DGS-SLAM 在实时建图时，当相机遇到之前见过的区域（闭环），高斯的位置和形状需要全局调整（Bundle Adjustment）。这与原版3DGS的离线BA有什么不同？在线BA面临哪些挑战？</p>
+<hr />
+<h2>9.11 阅读前沿论文的方法论</h2>
+<h3>检索工具</h3>
+<ul>
+<li><strong>arXiv cs.CV</strong>：<a href="https://arxiv.org/list/cs.CV/recent">arxiv.org/list/cs.CV/recent</a>，每天更新，是最快看到新工作的地方</li>
+<li><strong>Semantic Scholar</strong>：<a href="https://www.semanticscholar.org/">semanticscholar.org</a>，支持引用关系搜索和相关论文推荐</li>
+<li><strong>Papers With Code</strong>：<a href="https://paperswithcode.com/">paperswithcode.com</a>，附带代码链接和benchmark排行榜</li>
+<li><strong>Awesome-3D-Gaussian-Splatting</strong>：<a href="https://github.com/MrNeRF/awesome-3D-gaussian-splatting">github.com/MrNeRF/awesome-3D-gaussian-splatting</a>，社区维护的3DGS论文列表</li>
+</ul>
+<h3>15分钟快速判断论文价值</h3>
+<ol>
+<li><strong>摘要（2分钟）</strong>：解决了什么问题？贡献是什么？结果超过SOTA多少？</li>
+<li><strong>图1和实验表格（5分钟）</strong>：效果图是否直观？定量数字是否比较公平？有没有消融实验？</li>
+<li><strong>方法核心图（5分钟）</strong>：架构图是否清晰？新颖性体现在哪里？</li>
+<li><strong>限制和未来工作（3分钟）</strong>：作者自己承认的局限是什么？这说明什么没解决？</li>
+</ol>
+<h3>跟踪2025-2026新进展的工作流</h3>
+<p><strong>每周检索命令（在arXiv搜索）：</strong></p>
+<p>```
+搜索词：gaussian splatting + 年份
+过滤：cs.CV + 最近7天
+排序：相关性
+```</p>
+<p>推荐订阅 <a href="https://huggingface.co/papers">Daily Papers</a>（Hugging Face）或 <a href="https://github.com/Vincentqyw/cv-arxiv-daily">arxiv-daily</a>。</p>
+<p><strong>判断"值得精读"的快速筛选标准：</strong>
+- 被大组/知名实验室提交（INRIA、Stanford、CMU、UCB、腾讯AI、字节、商汤等）
+- 在顶会（CVPR/ICCV/ECCV/SIGGRAPH/NeurIPS/ICLR）录用
+- 代码已开源（代码开源=作者对结果有信心）
+- 在多个数据集上都有改善（不是只在一个特殊数据集上好）</p>
+<p><img alt="图9.1 3DGS改进方向全景图" src="pic/ch9_fig1.png" />
+<img alt="图9.3 各方法FPS vs PSNR散点图" src="pic/ch9_fig3.png" />
+<img alt="图9.4 论文发表数量时间线" src="pic/ch9_fig4.png" /></p>
+<p><strong>思考题</strong>：3DGS领域每周都有数篇新论文。如何判断一篇新论文的贡献是"真正的改进"还是"刷数字"（只在特定设置下有效，无法泛化）？</p>
+<hr />
+<h2>本章小结</h2>
+<p>截至2026年中，3DGS已从单一方法演变为完整的方向生态：</p>
+<table>
+<thead>
+<tr>
+<th>方向</th>
+<th>代表方法</th>
+<th>成熟度</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>压缩与效率</td>
+<td>Scaffold-GS, gsplat</td>
+<td>成熟，已有工程部署</td>
+</tr>
+<tr>
+<td>表面重建</td>
+<td>2DGS, GOF</td>
+<td>较成熟，可用于测量</td>
+</tr>
+<tr>
+<td>动态场景</td>
+<td>4D Gaussians, Deformable</td>
+<td>研究阶段，效果有限</td>
+</tr>
+<tr>
+<td>大场景</td>
+<td>VastGaussian, CityGaussian</td>
+<td>初步成熟</td>
+</tr>
+<tr>
+<td>语义理解</td>
+<td>Gaussian Grouping, Feature 3DGS</td>
+<td>较成熟</td>
+</tr>
+<tr>
+<td>重光照</td>
+<td>Relightable 3DGS</td>
+<td>研究阶段</td>
+</tr>
+<tr>
+<td>自动驾驶</td>
+<td>HUGSIM, Street Gaussians</td>
+<td>工业落地中</td>
+</tr>
+<tr>
+<td>SLAM</td>
+<td>3DGS-SLAM, SplaTAM</td>
+<td>实验室级别</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>推荐阅读</h2>
+<ul>
+<li><a href="https://github.com/MrNeRF/awesome-3D-gaussian-splatting">Awesome-3D-Gaussian-Splatting</a> — 持续维护的论文列表，新论文优先在此出现</li>
+<li><a href="https://arxiv.org/abs/2401.03890">3DGS Surveys</a> — Gaussian Splatting综述论文（2024）</li>
+<li><a href="https://paperswithcode.com/task/gaussian-splatting">Papers With Code - Gaussian Splatting</a> — 实时benchmark排行榜</li>
+</ul>
+<hr />
+<p><em>上一章：<a href="chapter8.html">第八章：数据准备与训练实战</a>  | 下一章：<a href="chapter10.html">第十章：成为贡献者——如何迭代改进系统</a></em></p>
+<div class="pager"><a href="chapter8.html">← 第八章 工程实现</a><a href="chapter10.html">第十章 前沿与改进 →</a></div>
+</main>
+</body>
+</html>

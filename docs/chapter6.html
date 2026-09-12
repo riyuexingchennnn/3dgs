@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>第六章 可微光栅化 - 三维高斯溅射（3DGS）完全教程</title>
+<script>
+window.MathJax = {
+  tex: {
+    inlineMath: [['$', '$'], ['\\(', '\\)']],
+    displayMath: [['$$', '$$'], ['\\[', '\\]']]
+  },
+  options: {
+    skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+  }
+};
+</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<style>
+  :root { --fg:#1f2328; --muted:#59636e; --accent:#0969da; --border:#d1d9e0; --bg:#ffffff; --code:#f6f8fa; }
+  @media (prefers-color-scheme: dark) {
+    :root { --fg:#e6edf3; --muted:#9198a1; --accent:#4493f8; --border:#3d444d; --bg:#0d1117; --code:#161b22; }
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--fg);
+    font-family: -apple-system, "Noto Sans CJK SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+    line-height:1.85; font-size:16px; }
+  header { border-bottom:1px solid var(--border); padding:14px 20px; position:sticky; top:0;
+    background:var(--bg); z-index:10; }
+  header a.brand { color:var(--fg); font-weight:700; text-decoration:none; font-size:17px; }
+  nav { margin-top:10px; display:flex; flex-wrap:wrap; gap:8px 14px; font-size:13.5px; }
+  nav a { color:var(--muted); text-decoration:none; }
+  nav a:hover { color:var(--accent); }
+  main { max-width:900px; margin:0 auto; padding:32px 20px 80px; }
+  h1 { font-size:1.85em; border-bottom:1px solid var(--border); padding-bottom:.35em; margin-top:1.4em; }
+  h2 { font-size:1.45em; border-bottom:1px solid var(--border); padding-bottom:.3em; margin-top:1.6em; }
+  h3 { font-size:1.2em; margin-top:1.5em; }
+  a { color:var(--accent); }
+  img { max-width:100%; height:auto; display:block; margin:18px auto; border-radius:6px; }
+  code { background:var(--code); padding:.18em .38em; border-radius:5px; font-size:.9em;
+    font-family: ui-monospace, "SFMono-Regular", Consolas, monospace; }
+  pre { background:var(--code); padding:14px 16px; border-radius:8px; overflow:auto; }
+  pre code { background:none; padding:0; }
+  blockquote { margin:16px 0; padding:6px 16px; border-left:4px solid var(--border); color:var(--muted); }
+  table { border-collapse:collapse; width:100%; margin:16px 0; font-size:14.5px; display:block; overflow-x:auto; }
+  th, td { border:1px solid var(--border); padding:8px 12px; text-align:left; }
+  th { background:var(--code); }
+  hr { border:0; border-top:1px solid var(--border); margin:32px 0; }
+  .pager { display:flex; justify-content:space-between; margin-top:56px; padding-top:20px;
+    border-top:1px solid var(--border); font-size:14.5px; }
+  mjx-container[display="true"] { overflow-x:auto; overflow-y:hidden; }
+</style>
+</head>
+<body>
+<header>
+  <a class="brand" href="index.html">三维高斯溅射（3DGS）完全教程</a>
+  <nav><a href="index.html">首页 / 总目录</a><a href="chapter1.html">第一章 三维重建是什么</a><a href="chapter2.html">第二章 相机与投影</a><a href="chapter3.html">第三章 辐射场与 NeRF</a><a href="chapter4.html">第四章 三维高斯表示</a><a href="chapter5.html">第五章 球谐函数</a><a href="chapter6.html">第六章 可微光栅化</a><a href="chapter7.html">第七章 训练与优化</a><a href="chapter8.html">第八章 工程实现</a><a href="chapter9.html">第九章 评估与对比</a><a href="chapter10.html">第十章 前沿与改进</a></nav>
+</header>
+<main>
+<h1>第六章：3DGS 核心算法详解</h1>
+<blockquote>
+<p>3DGS 的全貌：从初始化到训练到渲染，每个环节都拆开讲清楚。</p>
+</blockquote>
+<hr />
+<h2>6.1 整体架构一览</h2>
+<p>3DGS 的训练流程是一个<strong>迭代优化过程</strong>，整体可以分为以下几个阶段：</p>
+<p>```
+多视角图像
+    │
+    ▼ COLMAP SfM
+相机位姿 + 稀疏点云
+    │
+    ▼ 初始化
+数百万个三维高斯基元（初始位置来自点云）
+    │
+    ▼ 迭代训练（30,000步）
+    │   ┌─────────────────────────────────────────────┐
+    │   │  1. 随机选取一张训练视角图像                   │
+    │   │  2. 前向渲染（投影 + 排序 + Alpha合成）        │
+    │   │  3. 计算损失 L = L1 + λ·L_SSIM              │
+    │   │  4. 反向传播，计算所有高斯参数的梯度            │
+    │   │  5. Adam 优化器更新参数                       │
+    │   │  6. 每100步：自适应密度控制（ADC）             │
+    │   └─────────────────────────────────────────────┘
+    │
+    ▼ 输出
+已训练的高斯场景（.ply文件），可实时渲染
+```</p>
+<p><img alt="图6.1 3DGS整体训练流程图" src="pic/ch6_fig1.png" /></p>
+<p><strong>关键数字（Mip-NeRF 360 数据集上的典型值）：</strong></p>
+<table>
+<thead>
+<tr>
+<th>指标</th>
+<th>数值</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>训练时间（RTX 3090）</td>
+<td>~35分钟</td>
+</tr>
+<tr>
+<td>最终高斯数量</td>
+<td>300-600万</td>
+</tr>
+<tr>
+<td>场景文件大小（.ply）</td>
+<td>300-800 MB</td>
+</tr>
+<tr>
+<td>渲染速度（1080p）</td>
+<td>100-150 FPS</td>
+</tr>
+<tr>
+<td>PSNR（室内场景）</td>
+<td>~31 dB</td>
+</tr>
+</tbody>
+</table>
+<p><strong>思考题</strong>：3DGS 是"有监督学习"还是"无监督学习"？监督信号是什么？</p>
+<hr />
+<h2>6.2 高斯基元的完整参数定义</h2>
+<p>每个高斯基元存储以下可学习参数：</p>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>维度</th>
+<th>含义</th>
+<th>激活函数</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>位置 $\boldsymbol{\mu}$</td>
+<td>3</td>
+<td>高斯中心在世界坐标系的位置</td>
+<td>无</td>
+</tr>
+<tr>
+<td>旋转（四元数）$q$</td>
+<td>4</td>
+<td>高斯椭球的朝向</td>
+<td>归一化</td>
+</tr>
+<tr>
+<td>缩放 $\mathbf{s}$</td>
+<td>3</td>
+<td>三个主轴长度（对数存储）</td>
+<td>$\exp$</td>
+</tr>
+<tr>
+<td>不透明度 $o$</td>
+<td>1</td>
+<td>渲染时的基础不透明度</td>
+<td>sigmoid</td>
+</tr>
+<tr>
+<td>球谐系数 $\mathbf{f}$</td>
+<td>$16\times3$</td>
+<td>RGB三通道的视角相关颜色</td>
+<td>无（结果用sigmoid）</td>
+</tr>
+</tbody>
+</table>
+<p><strong>总参数量：</strong> $3+4+3+1+48 = 59$ 个标量/高斯</p>
+<p>设有 $N = 300$ 万个高斯：</p>
+<p>$$300 \times 10^4 \times 59 \times 4\ \text{字节} \approx 708\ \text{MB}$$</p>
+<p>这就是一个典型3DGS场景的存储需求，比NeRF（通常&lt;50MB）大得多。这也是压缩方向（第9章）如此活跃的原因。</p>
+<p><img alt="图6.2 高斯基元参数示意" src="pic/ch6_fig2.png" /></p>
+<p><strong>协方差矩阵的重建：</strong></p>
+<p>优化过程中存储四元数 $q$ 和缩放 $\mathbf{s}$，渲染时需要重建协方差矩阵：</p>
+<p>$$\Sigma = R \cdot \text{diag}(s_x^2, s_y^2, s_z^2) \cdot R^T$$</p>
+<p>其中 $R$ 由四元数 $q$ 计算得到（详见第3章公式）。</p>
+<p><strong>思考题</strong>：3DGS的高斯基元参数在GPU上存储为什么格式？（提示：PyTorch的`nn.Parameter`，连续存储，利于CUDA并行读取）</p>
+<hr />
+<h2>6.3 三维高斯投影到二维</h2>
+<p>这是3DGS的关键数学步骤：将三维高斯椭球投影到相机图像平面，得到二维高斯椭圆。</p>
+<h3>仿射近似（Affine Approximation）</h3>
+<p>透视投影本身是非线性的（存在除以深度 $Z$ 的操作），但在局部范围内可以用<strong>一阶泰勒展开（雅可比近似）</strong>线性化：</p>
+<p>$$\mathbf{x} = \pi(\mathbf{X}) \approx \pi(\boldsymbol{\mu}) + J(\mathbf{X} - \boldsymbol{\mu})$$</p>
+<p>其中 $J$ 是投影函数 $\pi$ 在高斯中心 $\boldsymbol{\mu}$ 处的<strong>雅可比矩阵</strong>。</p>
+<p>对于针孔相机，相机坐标系下的点 $(X, Y, Z)$ 投影到图像坐标 $(x, y)$ 的雅可比为：</p>
+<p>$$J = \begin{bmatrix} \frac{f_x}{Z} & 0 & -\frac{f_x X}{Z^2} \\ 0 & \frac{f_y}{Z} & -\frac{f_y Y}{Z^2} \end{bmatrix} \in \mathbb{R}^{2\times3}$$</p>
+<h3>二维协方差计算</h3>
+<p>设世界坐标系下的三维协方差为 $\Sigma_W$，相机外参旋转为 $W$（$3\times3$），则二维投影协方差：</p>
+<p>$$\Sigma' = J W \Sigma_W W^T J^T \in \mathbb{R}^{2\times2}$$</p>
+<p>这是一个 <strong>$2\times3 \cdot 3\times3 \cdot 3\times3 \cdot 3\times3 \cdot 3\times2$</strong> 的矩阵运算，结果是 $2\times2$ 的对称矩阵，完全确定了屏幕上二维高斯椭圆的形状。</p>
+<h3>二维高斯椭圆的渲染</h3>
+<p>对屏幕上的像素 $\mathbf{p} = (u, v)$，高斯基元的贡献（"影响力"）：</p>
+<p>$$\alpha(\mathbf{p}) = o \cdot \exp\!\left(-\frac{1}{2}(\mathbf{p} - \boldsymbol{\mu}')^T (\Sigma')^{-1} (\mathbf{p} - \boldsymbol{\mu}')\right)$$</p>
+<p>对 $2\times2$ 矩阵求逆：$(\Sigma')^{-1} = \frac{1}{\det(\Sigma')} \begin{bmatrix} \Sigma'_{22} & -\Sigma'_{12} \\ -\Sigma'_{12} & \Sigma'_{11} \end{bmatrix}$，计算量极小。</p>
+<p><strong>实践中的优化：</strong> 只渲染 $\alpha > \epsilon$（如 $10^{-3}$）的像素，用高斯的边界包围盒裁剪，大量减少无效计算。</p>
+<p><img alt="图6.3 3D高斯投影到2D的过程" src="pic/ch6_fig3.png" /></p>
+<p><strong>思考题</strong>：雅可比近似在高斯基元很大（覆盖大片视野）时会失效，因为透视变形不再是线性的。3DGS如何处理这种情况？（提示：大高斯会被ADC分裂）</p>
+<hr />
+<h2>6.4 Tile-based 光栅化</h2>
+<p>3DGS 的核心性能来自于专门设计的 <strong>Tile-based CUDA 光栅化器</strong>。</p>
+<h3>预处理阶段</h3>
+<ol>
+<li><strong>投影</strong>：将所有高斯的三维中心投影到屏幕，计算每个高斯的屏幕包围盒</li>
+<li><strong>Tile分配</strong>：将屏幕分成 $16\times16$ 像素的 tile，为每个高斯找出它覆盖的所有 tile</li>
+<li><strong>生成排序键</strong>：每个（高斯, tile）对生成一个64位排序键 = `(tile_id << 32 | depth_uint32)`</li>
+<li><strong>Radix Sort</strong>：对所有（高斯, tile）对按排序键做<strong>GPU基数排序</strong>，得到每个 tile 内按深度排列的高斯列表</li>
+</ol>
+<p><strong>Radix Sort 的效率：</strong> 时间复杂度 $O(N \cdot b/w)$，其中 $b$ 是位宽（64位），$w$ 是每次处理的位数（通常8位）。对数百万高斯，GPU上只需几毫秒。</p>
+<h3>前向渲染阶段</h3>
+<p>每个 tile 对应一个 CUDA 线程块（$16\times16 = 256$ 个线程，每线程处理一个像素）。线程块内：</p>
+<ol>
+<li>从全局内存加载属于该 tile 的高斯列表（利用<strong>共享内存</strong>批量加载，减少全局内存访问）</li>
+<li>每个像素按深度顺序 Alpha 合成，维护：
+   - 当前累积颜色 $C$
+   - 当前透射率 $T$（初始=1）
+   - 终止条件：当 $T < 0.0001$ 时停止（当前像素已几乎不透明）</li>
+</ol>
+<h3>反向传播</h3>
+<p>反向传播的挑战：Alpha 合成是从前到后的，但反向传播需要从后到前（需要知道后面的 $T$ 值）。</p>
+<p>解决方案：<strong>从后向前扫描</strong>（Backward Pass Reverse Scan），或在前向时缓存每个像素最后存活的高斯 ID，从那里向前反推梯度。</p>
+<p><img alt="图6.4 Tile-based光栅化示意" src="pic/ch6_fig4.png" /></p>
+<p><strong>思考题</strong>：为什么共享内存（Shared Memory）比全局显存（Global Memory）快这么多？（提示：延迟差距约100倍。思考L1 Cache和主存的类比）</p>
+<hr />
+<h2>6.5 自适应密度控制（ADC）</h2>
+<p>每训练 <strong>100步</strong>，系统执行一次自适应密度控制（Adaptive Density Control，ADC），动态调整高斯的数量和分布。</p>
+<h3>位置梯度统计</h3>
+<p>训练过程中，记录每个高斯的<strong>屏幕空间位置梯度均值</strong>：</p>
+<p>$$\bar{g}_k = \frac{1}{T} \sum_{t=1}^{T} \left\|\frac{\partial \mathcal{L}}{\partial \boldsymbol{\mu}_k'}\right\|$$</p>
+<p>位置梯度大 = 该高斯所在区域细节不够，需要更多基元来覆盖。</p>
+<h3>三种操作</h3>
+<p><strong>克隆（Clone）</strong>：适用于<strong>小高斯</strong>（$\max(s_x, s_y, s_z) < \tau_s$）且梯度大的情况。</p>
+<ul>
+<li>场景：欠重建区域，高斯太少</li>
+<li>操作：复制一个相同的高斯，两个高斯沿位置梯度方向稍微分开</li>
+<li>效果：该区域高斯密度增加，细节得到改善</li>
+</ul>
+<p><strong>分裂（Split）</strong>：适用于<strong>大高斯</strong>（$\max(s_x, s_y, s_z) \geq \tau_s$）且梯度大的情况。</p>
+<ul>
+<li>场景：一个高斯过大，试图覆盖多个不同外观的区域</li>
+<li>操作：删除原高斯，在原高斯内部随机生成2个新的更小高斯</li>
+<li>效果：原来一个"大模糊球"分成两个"小精确球"</li>
+</ul>
+<p><strong>剪枝（Prune）</strong>：满足任一条件就删除：</p>
+<ol>
+<li>不透明度 $o < \tau_\alpha$（几乎透明，无贡献）</li>
+<li>高斯的屏幕投影面积过大（超出场景范围的"幽灵"高斯）</li>
+</ol>
+<p><strong>不透明度重置（Opacity Reset）</strong>：每隔约 3000 步，将所有高斯的不透明度重置为接近0的小值。这迫使真正有用的高斯重新"证明自己"，并给低不透明度高斯一个被剪枝的机会，防止高斯数量无限增长。</p>
+<p><img alt="图6.5 ADC的三种操作示意" src="pic/ch6_fig5.png" /></p>
+<p><strong>典型高斯数量变化：</strong></p>
+<ul>
+<li>初始（来自SfM点云）：~10-20万个高斯</li>
+<li>7,000步时：约 80-150万</li>
+<li>30,000步时：约 200-600万</li>
+</ul>
+<p><strong>思考题</strong>：为什么不直接从一开始就用600万个高斯，而是要从少量高斯开始，逐步增加密度？（提示：思考初始化质量和优化稳定性）</p>
+<hr />
+<h2>6.6 损失函数设计</h2>
+<p>3DGS 的训练损失由两项组成：</p>
+<p>$$\mathcal{L} = (1 - \lambda) \mathcal{L}_1 + \lambda \mathcal{L}_\text{D-SSIM}$$</p>
+<p>其中默认 $\lambda = 0.2$。</p>
+<h3>L1 损失</h3>
+<p>$$\mathcal{L}_1 = \frac{1}{HW} \sum_{i,j} |\hat{I}_{ij} - I_{ij}|$$</p>
+<p>逐像素绝对误差。优点：对每个像素平等对待，训练稳定；缺点：对整体结构感知差（见第1章指标讨论）。</p>
+<h3>D-SSIM 损失</h3>
+<p><strong>D-SSIM = 1 - SSIM</strong>，范围 $[0,1]$，越小越好。</p>
+<p>$$\mathcal{L}_\text{D-SSIM} = 1 - \text{SSIM}(\hat{I}, I)$$</p>
+<p>SSIM 考虑局部 patch 内的亮度、对比度、结构，对于恢复清晰的边缘和纹理有帮助，是 L1 的有效补充。</p>
+<p><strong>0.2 的权重选择</strong>：原论文通过实验选定，D-SSIM权重过高会导致训练不稳定，过低则结构细节恢复不足。</p>
+<p><strong>为什么不用 LPIPS？</strong> LPIPS 是用神经网络计算的，前向+反向开销很大，在需要快速训练的3DGS中代价太高。L1 + D-SSIM 是性能与质量的工程平衡。</p>
+<p><img alt="图6.6 L1损失 vs SSIM损失的感知对比" src="pic/ch6_fig6.png" /></p>
+<p><strong>思考题</strong>：对于一张有强高光（specular highlight）的图像，L1损失会给高光区域分配怎样的梯度？这会影响高斯的球谐系数如何更新？</p>
+<hr />
+<h2>6.7 训练超参数解读</h2>
+<p>3DGS 使用 <strong>Adam 优化器</strong>，不同参数有不同的学习率：</p>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>初始学习率</th>
+<th>调度方式</th>
+<th>终止学习率</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>位置 $\boldsymbol{\mu}$</td>
+<td>$1.6\times10^{-4}$</td>
+<td>指数衰减至 $1.6\times10^{-6}$</td>
+<td>低</td>
+</tr>
+<tr>
+<td>旋转 $q$</td>
+<td>$1\times10^{-3}$</td>
+<td>常数</td>
+<td>常数</td>
+</tr>
+<tr>
+<td>缩放 $\mathbf{s}$</td>
+<td>$5\times10^{-3}$</td>
+<td>常数</td>
+<td>常数</td>
+</tr>
+<tr>
+<td>不透明度 $o$</td>
+<td>$5\times10^{-2}$</td>
+<td>常数</td>
+<td>常数</td>
+</tr>
+<tr>
+<td>球谐系数 $\mathbf{f}$</td>
+<td>$2.5\times10^{-3}$</td>
+<td>常数</td>
+<td>常数</td>
+</tr>
+</tbody>
+</table>
+<p><strong>位置学习率指数衰减的原因：</strong></p>
+<p>训练初期，高斯位置变化剧烈（需要从初始点云向正确位置移动）；后期，高斯已大致到位，需要精细调整，过大的学习率会导致震荡。指数衰减让训练从"粗定位"过渡到"精细调整"。</p>
+<p><strong>关键训练节点：</strong></p>
+<table>
+<thead>
+<tr>
+<th>迭代步数</th>
+<th>发生的事</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>从SfM点云初始化所有高斯（位置+默认参数）</td>
+</tr>
+<tr>
+<td>1~999</td>
+<td>只训练颜色（$l=1$球谐），固定位置和形状，让颜色先收敛</td>
+</tr>
+<tr>
+<td>1000+</td>
+<td>开始优化所有参数；每100步ADC</td>
+</tr>
+<tr>
+<td>3000, 6000, 9000</td>
+<td>Opacity Reset</td>
+</tr>
+<tr>
+<td>7000</td>
+<td>保存一次中间检查点</td>
+</tr>
+<tr>
+<td>30000</td>
+<td>训练结束，保存最终模型</td>
+</tr>
+</tbody>
+</table>
+<p><strong>思考题</strong>：为什么训练初期（前1000步）要固定位置和形状，只训练颜色？这样的课程训练（Curriculum Learning）有什么好处？</p>
+<hr />
+<h2>本章小结</h2>
+<ul>
+<li>3DGS 整体流程：SfM点云初始化 → 迭代训练（渲染+loss+反向传播+ADC） → 输出高斯场景</li>
+<li>每个高斯有 59 个参数（位置3、旋转4、缩放3、不透明度1、球谐系数48），数百万高斯存储约数百MB</li>
+<li>投影：$\Sigma' = JW\Sigma W^T J^T$，三维椭球变二维椭圆，解析计算无采样</li>
+<li>Tile-based 光栅化：16×16 tile + GPU Radix Sort + 共享内存批量处理，是实时性能的关键</li>
+<li>ADC：克隆（小高斯+梯度大）、分裂（大高斯+梯度大）、剪枝（低不透明度），动态调整高斯分布</li>
+<li>损失：$(1-0.2)\mathcal{L}_1 + 0.2\mathcal{L}_\text{D-SSIM}$，Adam优化器，位置学习率指数衰减</li>
+</ul>
+<hr />
+<h2>推荐阅读</h2>
+<ul>
+<li>Kerbl et al., "3D Gaussian Splatting for Real-Time Radiance Field Rendering", SIGGRAPH 2023（原始论文，必读）</li>
+<li>官方仓库 `gaussian_renderer/__init__.py`（前向渲染实现）</li>
+<li>`submodules/diff-gaussian-rasterization/cuda_rasterizer/`（CUDA光栅化核心代码）</li>
+<li>Lassner &amp; Zollhöfer, "Pulsar: Efficient Sphere-based Neural Rendering", CVPR 2021（类似思路的早期工作）</li>
+</ul>
+<hr />
+<p><em>上一章：<a href="chapter5.html">第五章：体渲染与 Alpha 合成</a>  | 下一章：<a href="chapter7.html">第七章：从原始论文到开源代码</a></em></p>
+<div class="pager"><a href="chapter5.html">← 第五章 球谐函数</a><a href="chapter7.html">第七章 训练与优化 →</a></div>
+</main>
+</body>
+</html>
