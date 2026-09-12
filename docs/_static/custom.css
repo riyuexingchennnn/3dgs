@@ -1,152 +1,27 @@
-/* 外观对齐 ROS 2 文档：
-   深色侧边栏 + 白色正文 + 更宽的阅读区。
-   rtd 主题自带的深色侧边栏即为 ROS 2 观感，这里只做宽度与细节微调。 */
+/* 对齐 ROS 2 官方文档（docs.ros.org）的观感。
+   该站使用 sphinx_rtd_theme 默认样式：
+     · 左上角搜索区  #2980b9（蓝）
+     · 左侧导航栏    #343131（深灰），宽 300px
+     · 正文          白色，max-width 800px，居中
+     · 正文右侧      #fcfcfc 灰色区域
+   此处仅显式固定这几项，其余保持主题默认。 */
 
-/* ---- 正文区域拉宽 ---- */
+/* 正文白底，右侧留出浅灰区域 */
+.wy-nav-content-wrap {
+  background: #fcfcfc;
+}
+
 .wy-nav-content {
-  max-width: 1200px;
-}
-
-@media screen and (min-width: 1400px) {
-  .wy-nav-content {
-    max-width: 1320px;
-  }
-}
-
-/* ---- 正文白底，且不受系统深色偏好影响 ---- */
-html {
-  color-scheme: light only;
-}
-
-body,
-.wy-body-for-nav,
-.wy-nav-content-wrap,
-.wy-nav-content,
-.rst-content,
-.document {
   background: #ffffff;
+  max-width: 800px;
 }
 
-.rst-content h1,
-.rst-content h2,
-.rst-content h3,
-.rst-content h4,
-.rst-content p,
-.rst-content li,
-.rst-content td,
-.rst-content th,
-.rst-content dt,
-.rst-content dd {
-  color: #404040;
-}
-
-/* ---- 侧边栏：深色，贴近 ROS 2 ---- */
-.wy-nav-side {
-  background: #343131;
-}
-
-.wy-side-nav-search {
-  background-color: #2b2929;
-  border-bottom: 1px solid #3d3a3a;
-}
-
-.wy-side-nav-search input[type="text"] {
-  border: 1px solid #3d3a3a;
-  background: #ffffff;
-  color: #333333;
-}
-
-.wy-menu-vertical a {
-  color: #d9d9d9;
-}
-
-.wy-menu-vertical a:hover {
-  background-color: #4a4646;
-  color: #ffffff;
-}
-
-.wy-menu-vertical li.current,
-.wy-menu-vertical li.current > a,
-.wy-menu-vertical li.current a {
-  background: #3d3a3a;
-  color: #ffffff;
-}
-
-.wy-menu-vertical li.current a:hover {
-  background: #4a4646;
-}
-
-.wy-menu-vertical li.on a:hover {
-  background: #4a4646;
-}
-
-.wy-menu-vertical header,
-.wy-menu-vertical p.caption {
-  color: #b3b3b3;
-}
-
-.wy-menu-vertical li.toctree-l1.current > a {
-  border-left: 3px solid #2980b9;
-}
-
-/* ---- 移动端顶栏 ---- */
-.wy-nav-top {
-  background: #343131;
-}
-
-/* ---- 正文排版细节 ---- */
-.rst-content p,
-.rst-content li {
-  line-height: 1.75;
-  font-size: 15.5px;
-}
-
-.rst-content h1 {
-  font-size: 1.9em;
-}
-
-.rst-content h2 {
-  font-size: 1.45em;
-  margin-top: 1.8em;
-}
-
-.rst-content h3 {
-  font-size: 1.15em;
-}
-
-.rst-content code,
-.rst-content tt {
-  background: #f5f5f5;
-  border: 1px solid #e1e1e1;
-  color: #333333;
-}
-
-.rst-content pre {
-  border: 1px solid #e1e1e1;
-}
-
-/* ---- Edit on GitHub 链接 ---- */
-.wy-breadcrumbs-aside a {
-  color: #2980b9;
-  font-size: 13px;
-}
-
-.wy-breadcrumbs-aside a:hover {
-  color: #1a5f8a;
-}
-
-/* ---- 公式容器允许横向滚动 ---- */
+/* 行间公式过宽时允许横向滚动，避免撑破版心 */
 mjx-container[display="true"] {
   overflow-x: auto;
   overflow-y: hidden;
 }
 
-/* ---- 表格 ---- */
-.rst-content table.docutils {
-  border: 1px solid #e1e1e1;
-}
-
-.rst-content table.docutils th {
-  background: #f7f7f7;
-  color: #333333;
+.rst-content .math {
+  overflow-x: auto;
 }

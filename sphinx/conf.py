@@ -53,7 +53,6 @@ html_theme_options = {
 }
 html_static_path = ["_static"]
 html_css_files = ["custom.css"]
-html_js_files = ["custom.js"]
 html_title = "3DGS 教程文档"
 html_short_title = "3DGS 教程"
 
