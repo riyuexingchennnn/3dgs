@@ -69,7 +69,7 @@ html_context = {
 # ---- 输出 ----
 html_copy_source = False
 html_show_sourcelink = False
-html_show_sphinx = False
+html_show_sphinx = True
 html_show_copyright = True
 html_last_updated_fmt = ""
 html_use_smartypants = False
