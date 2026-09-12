@@ -10,3 +10,5 @@ test
 .claude
 openspec
 note/
+# Sphinx 构建缓存
+_build/
