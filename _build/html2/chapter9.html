@@ -1,0 +1,913 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="zh-CN" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>第九章：主流改进方向与前沿论文（截至 2026 年中） &mdash; 3DGS 完全教程</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="_static/custom.css?v=28deb2ca" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=1663b99f"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/translations.js?v=540d3cec"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="索引" href="genindex.html" />
+    <link rel="search" title="搜索" href="search.html" />
+    <link rel="next" title="第十章：成为贡献者——如何迭代改进系统" href="chapter10.html" />
+    <link rel="prev" title="第八章：数据准备与训练实战" href="chapter8.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            三维高斯溅射（3DGS）完全教程
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="搜索文档" aria-label="搜索文档" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="导航菜单">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="chapter1.html">第一章：三维重建是什么，为什么重要</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="chapter1.html#id2">1.1 从一张照片说起</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="chapter1.html#id3">人眼如何感知深度</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter1.html#id4">照片丢失了什么</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="chapter1.html#id5">1.2 三维重建的定义与目标</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="chapter1.html#id6">问题的形式化定义</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter1.html#id7">输入与输出</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter1.html#id8">评价指标的直觉解释</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="chapter1.html#psnr-peak-signal-to-noise-ratio">PSNR（Peak Signal-to-Noise Ratio，峰值信噪比）</a></li>
+<li class="toctree-l4"><a class="reference internal" href="chapter1.html#ssim-structural-similarity-index">SSIM（Structural Similarity Index，结构相似性指数）</a></li>
+<li class="toctree-l4"><a class="reference internal" href="chapter1.html#lpips-learned-perceptual-image-patch-similarity">LPIPS（Learned Perceptual Image Patch Similarity，学习感知图像相似性）</a></li>
+<li class="toctree-l4"><a class="reference internal" href="chapter1.html#id9">三个指标的直觉对比小结</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="chapter1.html#id10">1.3 主流技术路线全景</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="chapter1.html#mvs">路线一：MVS 传统多视图立体几何</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter1.html#nerf">路线二：NeRF 神经辐射场（隐式表达）</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter1.html#dgs">路线三：3DGS 三维高斯溅射（显式表达）</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter1.html#id11">三种路线横向对比</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="chapter1.html#id12">1.4 3DGS 能做什么，不能做什么</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="chapter1.html#id13">3DGS 擅长的场景</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter1.html#id14">3DGS 的局限</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter1.html#id15">能力边界总结</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="chapter1.html#id16">1.5 学习路线与本教程结构</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="chapter1.html#id17">整体章节安排</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter1.html#id18">各章依赖关系说明</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter1.html#id19">推荐学习节奏</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter1.html#id20">前置知识要求</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="chapter1.html#id21">本章小结</a></li>
+<li class="toctree-l2"><a class="reference internal" href="chapter1.html#id22">推荐阅读</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="chapter2.html">第二章：视觉基础——相机、投影与点云</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="chapter2.html#id2">2.1 针孔相机模型</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="chapter2.html#id3">基本原理</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter2.html#id4">相似三角形推导</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter2.html#id5">从物理坐标到像素坐标</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter2.html#k">内参矩阵 $K$</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="chapter2.html#id6">2.2 相机外参与世界坐标系</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="chapter2.html#id7">四个坐标系</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter2.html#r-t">旋转矩阵 $R$ 与平移向量 $t$</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter2.html#id8">完整变换链</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="chapter2.html#id9">2.3 齐次坐标与投影矩阵</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="chapter2.html#id10">为什么引入齐次坐标</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter2.html#id11">齐次坐标下的投影</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter2.html#times-4">完整的 $3 \times 4$ 投影矩阵</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="chapter2.html#id12">2.4 畸变模型</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="chapter2.html#id13">为什么存在畸变</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter2.html#id14">径向畸变</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter2.html#id15">切向畸变</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter2.html#id16">完整畸变模型</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter2.html#id17">去畸变流程</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="chapter2.html#id18">2.5 点云是什么</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="chapter2.html#sfm">SfM 的直觉</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter2.html#vs">稀疏点云 vs 密集点云</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="chapter2.html#colmap">2.6 COLMAP 实战</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="chapter2.html#id19">什么是 COLMAP</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter2.html#id20">安装</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter2.html#id21">自动重建流程</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter2.html#id22">输出文件结构</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter2.html#id23">如何检查重建质量</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="chapter2.html#id24">本章小结</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="chapter3.html">第三章：高斯函数与概率基础</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="chapter3.html#id2">3.1 一维高斯函数</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="chapter3.html#id3">3.1.1 定义与公式</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter3.html#id4">3.1.2 三个关键性质</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter3.html#id5">3.1.3 图形直觉</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter3.html#id6">3.1.4 指数衰减的几何含义</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter3.html#id7">3.1.5 思考题</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="chapter3.html#id8">3.2 多维高斯分布</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="chapter3.html#id9">3.2.1 从一维到多维的推广</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter3.html#id10">3.2.2 协方差矩阵的结构</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter3.html#id11">3.2.3 等高线是椭圆的几何推导</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter3.html#id12">3.2.4 特征值分解与椭球主轴</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter3.html#id13">3.2.5 相关性的可视化直觉</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter3.html#id14">3.2.6 思考题</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="chapter3.html#id15">3.3 协方差矩阵的分解</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="chapter3.html#rs">3.3.1 从特征值分解到 RS 分解</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter3.html#id16">3.3.2 几何解释：先缩放，后旋转</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter3.html#id17">3.3.3 自由度分析</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter3.html#dgs">3.3.4 3DGS 的实际存储方式：四元数 + 尺度向量</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter3.html#id18">3.3.5 协方差矩阵的梯度计算</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter3.html#id19">3.3.6 思考题</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="chapter3.html#id20">3.4 为什么选高斯作为场景基元</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="chapter3.html#id21">3.4.1 可微性：处处光滑</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter3.html#d">3.4.2 解析投影闭合解：2D 高斯的精确推导</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter3.html#gpu">3.4.3 GPU 并行友好</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter3.html#id22">3.4.4 物理直觉：局部支撑的连续基</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter3.html#id23">3.4.5 思考题</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="chapter3.html#id24">3.5 高斯混合与叠加</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="chapter3.html#gmm">3.5.1 高斯混合模型（GMM）基础</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter3.html#id25">3.5.2 GMM 的万能近似能力</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter3.html#dgs-gmm">3.5.3 3DGS 即 GMM：场景密度场的高斯混合表示</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter3.html#alpha">3.5.4 Alpha 合成：高斯叠加的渲染公式</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter3.html#gmm-3dgs">3.5.5 GMM 与 3DGS 的类比对比</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter3.html#id26">3.5.6 自适应密度控制：3DGS 的独特优势</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter3.html#id27">3.5.7 思考题</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="chapter3.html#id28">本章小结</a></li>
+<li class="toctree-l2"><a class="reference internal" href="chapter3.html#id29">推荐阅读</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="chapter4.html">第四章：球谐函数与外观建模</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="chapter4.html#id2">4.1 颜色与观察方向的关系</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="chapter4.html#id3">朗伯体与非朗伯体</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter4.html#id4">为什么需要方向相关颜色</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="chapter4.html#id5">4.2 球谐函数是什么</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="chapter4.html#id6">球面上的正交基函数</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter4.html#id7">类比傅里叶级数</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter4.html#l">阶数 $l$ 与频率的对应</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="chapter4.html#id8">4.3 球谐函数的数学定义</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="chapter4.html#y-l-m-theta-phi">实数形式 $Y_l^m(\theta, \phi)$</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter4.html#id9">前 4 阶系数数量</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter4.html#id10">总计 16 个基函数</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="chapter4.html#id11">4.4 用球谐函数表示颜色</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="chapter4.html#rgb">RGB 各通道独立展开</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter4.html#id12">已知方向如何计算颜色——线性组合</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter4.html#id13">系数作为可学习参数</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="chapter4.html#id14">4.5 阶数选择的工程折衷</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="chapter4.html#id15">0 阶——常色（无方向依赖）</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter4.html#id16">3 阶——质量与开销的平衡</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter4.html#id17">更高阶的边际收益</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="chapter4.html#id18">本章小结</a></li>
+<li class="toctree-l2"><a class="reference internal" href="chapter4.html#id19">推荐阅读</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="chapter5.html">第五章：体渲染与 Alpha 合成</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="chapter5.html#id1">5.1 体渲染方程直觉推导</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="chapter5.html#id2">5.1.1 光线在介质中的传播</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter5.html#id3">5.1.2 消光系数与透射率</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter5.html#id4">5.1.3 辐射传输方程</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="chapter5.html#id5">5.2 离散近似与 Alpha 合成</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="chapter5.html#id6">5.2.1 将连续积分离散化</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter5.html#id7">5.2.2 前向 Alpha 合成公式</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter5.html#id8">5.2.3 前向合成的递推形式</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="chapter5.html#nerf">5.3 NeRF 的体渲染实现</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="chapter5.html#id9">5.3.1 网络结构与输入输出</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter5.html#id10">5.3.2 层次采样策略</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter5.html#id11">5.3.3 渲染速度瓶颈</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="chapter5.html#dgs">5.4 3DGS 的渲染公式推导</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="chapter5.html#id12">5.4.1 三维高斯的定义</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter5.html#id13">5.4.2 三维高斯投影到屏幕</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter5.html#id14">5.4.3 每像素贡献与深度排序</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter5.html#tile-based">5.4.4 Tile-Based 光栅化</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="chapter5.html#id15">5.5 可微渲染意义</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="chapter5.html#id16">5.5.1 可微渲染的基本框架</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter5.html#id17">5.5.2 梯度如何驱动高斯参数更新</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter5.html#id18">5.5.3 自适应密度控制</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter5.html#id19">5.5.4 可微渲染的全局梯度流</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="chapter5.html#id20">本章小结</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="chapter6.html">第六章：3DGS 核心算法详解</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="chapter6.html#id1">6.1 整体架构一览</a></li>
+<li class="toctree-l2"><a class="reference internal" href="chapter6.html#id2">6.2 高斯基元的完整参数定义</a></li>
+<li class="toctree-l2"><a class="reference internal" href="chapter6.html#id3">6.3 三维高斯投影到二维</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="chapter6.html#affine-approximation">仿射近似（Affine Approximation）</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter6.html#id4">二维协方差计算</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter6.html#id5">二维高斯椭圆的渲染</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="chapter6.html#tile-based">6.4 Tile-based 光栅化</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="chapter6.html#id6">预处理阶段</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter6.html#id7">前向渲染阶段</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter6.html#id8">反向传播</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="chapter6.html#adc">6.5 自适应密度控制（ADC）</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="chapter6.html#id9">位置梯度统计</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter6.html#id10">三种操作</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="chapter6.html#id11">6.6 损失函数设计</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="chapter6.html#l1">L1 损失</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter6.html#d-ssim">D-SSIM 损失</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="chapter6.html#id12">6.7 训练超参数解读</a></li>
+<li class="toctree-l2"><a class="reference internal" href="chapter6.html#id13">本章小结</a></li>
+<li class="toctree-l2"><a class="reference internal" href="chapter6.html#id14">推荐阅读</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="chapter7.html">第七章：从原始论文到开源代码</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="chapter7.html#dgs-kerbl-et-al-2023">7.1 原版3DGS论文精读（Kerbl et al. 2023）</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="chapter7.html#id2">核心贡献总结</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter7.html#nerf5">与NeRF的5个关键差异</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter7.html#id3">实验结果解读</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter7.html#id4">引用数与学术影响力</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="chapter7.html#id5">7.2 代码仓库结构导览</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="chapter7.html#gaussian-splatting">gaussian-splatting 仓库文件树</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter7.html#scene-gaussian-renderer-utils">scene/、gaussian_renderer/、utils/ 各目录职责</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter7.html#cuda-diff-gaussian-rasterization">CUDA扩展（diff-gaussian-rasterization）的作用</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="chapter7.html#train-py">7.3 train.py 主循环解读</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="chapter7.html#id6">总体流程概览</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter7.html#id7">阶段一：初始化</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter7.html#id8">阶段二：前向渲染</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter7.html#loss">阶段三：Loss计算</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter7.html#id9">阶段四：反向传播</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter7.html#id10">阶段五：参数更新</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter7.html#adc">阶段六：自适应密度控制（ADC）</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter7.html#id11">关键函数调用关系</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="chapter7.html#render-py">7.4 render.py 与评估</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="chapter7.html#render">render() 函数</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter7.html#metrics-py-psnr-ssim-lpips">metrics.py 中 PSNR/SSIM/LPIPS 计算</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter7.html#id12">如何解读评估结果</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="chapter7.html#id13">7.5 常见报错排查</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="chapter7.html#cuda-out-of-memory">问题一：CUDA Out of Memory（显存不足）</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter7.html#colmap">问题二：COLMAP失败（特征不足）</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter7.html#id14">问题三：渲染黑屏</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter7.html#id15">问题四：训练不收敛</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter7.html#windows-linux">问题五：Windows/Linux 差异</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="chapter8.html">第八章：数据准备与训练实战</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="chapter8.html#id2">8.1 硬件与环境配置</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="chapter8.html#gpu">GPU 显存需求</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter8.html#cuda">CUDA 与依赖版本</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="chapter8.html#id3">8.2 公开数据集下载与使用</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="chapter8.html#tanks-and-temples">Tanks and Temples</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter8.html#mip-nerf-360">Mip-NeRF 360 数据集</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter8.html#id4">数据集对比</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="chapter8.html#id5">8.3 用自己的视频训练</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="chapter8.html#id6">拍摄技巧</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter8.html#id7">视频抽帧</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter8.html#colmap">COLMAP 自动重建流程</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="chapter8.html#id8">8.4 训练参数精调</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="chapter8.html#id9">不同场景的推荐配置</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter8.html#id10">快速实验策略</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter8.html#id11">关键超参数影响</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="chapter8.html#id12">8.5 可视化与结果分析</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="chapter8.html#sibr-viewer">SIBR Viewer 实时查看</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter8.html#python">Python 轨迹渲染</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter8.html#id13">训练指标监控</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="chapter8.html#id14">8.6 导出与部署</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="chapter8.html#ply">PLY 文件格式</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter8.html#webgl">WebGL / 浏览器端部署</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter8.html#id15">移动端适配</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter8.html#gsplat-python-api">gsplat 库的 Python API</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="chapter8.html#id16">本章小结</a></li>
+<li class="toctree-l2"><a class="reference internal" href="chapter8.html#id17">推荐阅读</a></li>
+</ul>
+</li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">第九章：主流改进方向与前沿论文（截至 2026 年中）</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#id2">9.1 高效表示与压缩</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id3">代表工作</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#id4">9.2 几何与表面重建</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id5">代表工作</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#id6">9.3 动态场景与视频</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id7">代表工作</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#id8">9.4 大场景与城市级重建</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id9">代表工作</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#id10">9.5 文本/图像驱动生成</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id11">代表工作</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#id12">9.6 语义理解与场景分析</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id13">代表工作</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#id14">9.7 光照分解与重光照</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id15">代表工作</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#avatar">9.8 人体与Avatar建模</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id16">代表工作</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#id17">9.9 自动驾驶仿真</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id18">代表工作</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#slam">9.10 SLAM 与实时建图</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id19">代表工作</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#id20">9.11 阅读前沿论文的方法论</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id21">检索工具</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id22">15分钟快速判断论文价值</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id23">跟踪2025-2026新进展的工作流</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#id24">本章小结</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id25">推荐阅读</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="chapter10.html">第十章：成为贡献者——如何迭代改进系统</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="chapter10.html#id2">10.1 建立可复现的实验基线</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="chapter10.html#id3">可复现性是一切的前提</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="chapter10.html#id4">10.2 定位性能瓶颈</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="chapter10.html#cuda-profiling">CUDA Profiling</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter10.html#vs">内存带宽 vs 计算瓶颈</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="chapter10.html#id5">10.3 修改高斯基元的正确姿势</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="chapter10.html#id6">添加新属性</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter10.html#id7">修改梯度流</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="chapter10.html#gsplat-nerfstudio">10.4 替代库：gsplat 与 nerfstudio</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="chapter10.html#gsplat-3dgs">gsplat：高性能 3DGS 后端</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter10.html#nerfstudio">nerfstudio：模块化训练框架</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter10.html#gaussian-opacity-fields-gof">Gaussian Opacity Fields（GOF）</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter10.html#dgut">3DGUT：通用非结构化相机</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="chapter10.html#id8">10.5 消融实验设计</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="chapter10.html#id9">控制变量原则</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter10.html#id10">指标选取</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter10.html#id11">统计显著性</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="chapter10.html#id12">10.6 开源与投稿建议</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="chapter10.html#id13">顶会截止日期（2024-2026年参考）</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter10.html#id14">代码整洁度标准</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter10.html#readme">README 写法</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter10.html#id15">社区协作</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="chapter10.html#id16">10.7 推荐学习资源汇总</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="chapter10.html#id17">论文阅读路径（建议顺序）</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter10.html#id18">精选课程</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter10.html#id19">活跃研究组（关注他们的论文）</a></li>
+<li class="toctree-l3"><a class="reference internal" href="chapter10.html#id20">中文社区</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="chapter10.html#id21">全书总结</a></li>
+<li class="toctree-l2"><a class="reference internal" href="chapter10.html#id22">本章小结</a></li>
+<li class="toctree-l2"><a class="reference internal" href="chapter10.html#id23">推荐阅读</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="移动版导航菜单" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">三维高斯溅射（3DGS）完全教程</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="页面导航">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">第九章：主流改进方向与前沿论文（截至 2026 年中）</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="id1">
+<h1>第九章：主流改进方向与前沿论文（截至 2026 年中）<a class="headerlink" href="#id1" title="链接到此标题。"></a></h1>
+<blockquote>
+<div><p>原版3DGS是起点，不是终点。本章系统梳理2023年至今最重要的改进方向。</p>
+</div></blockquote>
+<hr class="docutils" />
+<section id="id2">
+<h2>9.1 高效表示与压缩<a class="headerlink" href="#id2" title="链接到此标题。"></a></h2>
+<p><strong>问题</strong>：原版3DGS一个场景需要300-800MB，在移动端、网页端或多场景应用中不可接受。</p>
+<section id="id3">
+<h3>代表工作<a class="headerlink" href="#id3" title="链接到此标题。"></a></h3>
+<p><strong>Scaffold-GS</strong>（CVPR 2024，<a class="reference external" href="https://arxiv.org/abs/2312.00109">arXiv:2312.00109</a>）<br />
+核心思想：引入<strong>锚点（Anchor）<strong>作为中间层，每个锚点生成若干</strong>神经高斯（Neural Gaussians）</strong>，通过MLP预测而非直接存储。</p>
+<ul class="simple">
+<li><p>锚点数量 &lt;&lt; 高斯数量，大幅减少存储</p></li>
+<li><p>神经高斯的属性通过特征向量+MLP动态生成，表达能力更强</p></li>
+<li><p>PSNR 比原版高约 0.5-1 dB，高斯数量减少 30-50%</p></li>
+<li><p>后续工作 Octree-GS 在 Scaffold-GS 基础上加入八叉树层次结构</p></li>
+</ul>
+<p><strong>Mini-Splatting</strong>（ECCV 2024，<a class="reference external" href="https://arxiv.org/abs/2403.14166">arXiv:2403.14166</a>）<br />
+将高斯数量压缩到原版的 <strong>0.2%</strong>（200万→4000个），通过重要性采样选取关键高斯。</p>
+<p><strong>LightGaussian</strong>（NeurIPS 2024，<a class="reference external" href="https://arxiv.org/abs/2311.17245">arXiv:2311.17245</a>）<br />
+训练后剪枝+蒸馏，在保持80% PSNR的前提下，模型压缩至原版10-20%大小。</p>
+<p><strong>gsplat 库</strong>（持续更新，<a class="reference external" href="https://github.com/nerfstudio-project/gsplat">github.com/nerfstudio-project/gsplat</a>）<br />
+不是论文而是工程工具：提供比官方实现更高效的CUDA光栅化器（内存占用降低约30%），且 API 更易于二次开发。</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>方法</p></th>
+<th class="head"><p>压缩比</p></th>
+<th class="head"><p>PSNR损失</p></th>
+<th class="head"><p>特点</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>原版3DGS</p></td>
+<td><p>1×</p></td>
+<td><p>0</p></td>
+<td><p>基准</p></td>
+</tr>
+<tr class="row-odd"><td><p>LightGaussian</p></td>
+<td><p>5-10×</p></td>
+<td><p>~0.5 dB</p></td>
+<td><p>训练后压缩</p></td>
+</tr>
+<tr class="row-even"><td><p>Scaffold-GS</p></td>
+<td><p>1.5-2×</p></td>
+<td><p>+0.5 dB（更好）</p></td>
+<td><p>训练时优化表示</p></td>
+</tr>
+<tr class="row-odd"><td><p>Mini-Splatting</p></td>
+<td><p>500×</p></td>
+<td><p>~3 dB</p></td>
+<td><p>极限压缩</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>思考题</strong>：Scaffold-GS 的锚点 + 神经高斯架构，实质上引入了 MLP（类似NeRF）。这是不是在&quot;退化&quot;回NeRF？它和NeRF的根本区别是什么？</p>
+</section>
+</section>
+<hr class="docutils" />
+<section id="id4">
+<h2>9.2 几何与表面重建<a class="headerlink" href="#id4" title="链接到此标题。"></a></h2>
+<p><strong>问题</strong>：3DGS 用体积高斯基元表示场景，从中提取精确的三维表面（网格）很困难。高斯椭球不在表面上，也不贴合表面。</p>
+<section id="id5">
+<h3>代表工作<a class="headerlink" href="#id5" title="链接到此标题。"></a></h3>
+<p><strong>2DGS</strong>（SIGGRAPH 2024，<a class="reference external" href="https://arxiv.org/abs/2403.17888">arXiv:2403.17888</a>）<br />
+将三维高斯<strong>椭球</strong>替换为二维高斯<strong>圆盘（Disk/Surfel）</strong>。二维高斯天然贴合表面，从而：</p>
+<ul class="simple">
+<li><p>几何重建质量显著提升（Chamfer Distance减少40%以上）</p></li>
+<li><p>网格提取更简单（TSDF融合效果更好）</p></li>
+<li><p>代价：相同场景需要更多高斯基元</p></li>
+</ul>
+<p><strong>Gaussian Opacity Fields (GOF)</strong>（NeurIPS 2024，<a class="reference external" href="https://arxiv.org/abs/2404.10772">arXiv:2404.10772</a>）<br />
+在高斯基元上定义连续的不透明度场，允许直接用等值面（Marching Cubes）提取网格，质量接近NeRF级别的网格重建。</p>
+<p><strong>SuGaR</strong>（CVPR 2024，<a class="reference external" href="https://arxiv.org/abs/2311.12775">arXiv:2311.12775</a>）<br />
+Surface Gaussian Regularization：在3DGS训练中加入正则化项，鼓励高斯基元贴合表面，然后用泊松重建提取网格。</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>方法</p></th>
+<th class="head"><p>渲染质量</p></th>
+<th class="head"><p>几何质量</p></th>
+<th class="head"><p>速度</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>原版3DGS</p></td>
+<td><p>极高</p></td>
+<td><p>差</p></td>
+<td><p>实时</p></td>
+</tr>
+<tr class="row-odd"><td><p>2DGS</p></td>
+<td><p>高</p></td>
+<td><p>好</p></td>
+<td><p>实时</p></td>
+</tr>
+<tr class="row-even"><td><p>GOF</p></td>
+<td><p>高</p></td>
+<td><p>很好</p></td>
+<td><p>接近实时</p></td>
+</tr>
+<tr class="row-odd"><td><p>SuGaR</p></td>
+<td><p>中</p></td>
+<td><p>中</p></td>
+<td><p>慢</p></td>
+</tr>
+</tbody>
+</table>
+<p><img alt="图9.2 2DGS 与 3DGS 几何表示对比" src="_images/ch9_fig2.png" /></p>
+<p><strong>思考题</strong>：2DGS 用圆盘替换椭球，意味着每个基元少了一个维度的自由度。这在表示有厚度的半透明物体（如玻璃、头发）时会遇到什么问题？</p>
+</section>
+</section>
+<hr class="docutils" />
+<section id="id6">
+<h2>9.3 动态场景与视频<a class="headerlink" href="#id6" title="链接到此标题。"></a></h2>
+<p><strong>问题</strong>：原版3DGS假设静态场景，无法处理视频中的运动物体。</p>
+<section id="id7">
+<h3>代表工作<a class="headerlink" href="#id7" title="链接到此标题。"></a></h3>
+<p><strong>4D Gaussians</strong>（ICLR 2024，<a class="reference external" href="https://arxiv.org/abs/2310.17914">arXiv:2310.17914</a>）<br />
+在高斯基元中加入<strong>时间维度</strong>：每个高斯有一个随时间变化的变形场（Deformation Field），用小型MLP预测时刻 $t$ 时的位置/形状偏移。</p>
+<p><strong>Deformable 3D Gaussians</strong>（CVPR 2024，<a class="reference external" href="https://arxiv.org/abs/2309.13101">arXiv:2309.13101</a>）<br />
+类似思路，用MLP预测每个时间步的高斯变形，适合单目视频输入。</p>
+<p><strong>SplatFields</strong>（ECCV 2024，<a class="reference external" href="https://arxiv.org/abs/2409.11211">arXiv:2409.11211</a>）<br />
+用神经场（Neural Field）作为动态高斯的底层表示，支持更复杂的非刚性变形。</p>
+<p><strong>Dynamic 3DGS</strong>（CVPR 2024，<a class="reference external" href="https://arxiv.org/abs/2308.09713">arXiv:2308.09713</a>）<br />
+假设场景中刚体运动，每个高斯有独立的运动参数，适合机械、刚体场景。</p>
+<p><strong>2025年方向</strong>：物理驱动的动态高斯（PhysGaussian，加入弹性/塑性变形）、流体高斯（处理液体表面）正在快速发展。</p>
+<p><strong>思考题</strong>：动态3DGS通常需要<strong>密集的多视角视频</strong>（多相机同步）。如果只有单目视频（手机拍摄），重建动态场景会遇到什么根本性困难？（提示：深度歧义和运动歧义同时存在）</p>
+</section>
+</section>
+<hr class="docutils" />
+<section id="id8">
+<h2>9.4 大场景与城市级重建<a class="headerlink" href="#id8" title="链接到此标题。"></a></h2>
+<p><strong>问题</strong>：原版3DGS在大场景中（&gt;100米范围）会出现&quot;高斯爆炸&quot;（远处高斯退化）和内存溢出问题。</p>
+<section id="id9">
+<h3>代表工作<a class="headerlink" href="#id9" title="链接到此标题。"></a></h3>
+<p><strong>VastGaussian</strong>（CVPR 2024，<a class="reference external" href="https://arxiv.org/abs/2402.17427">arXiv:2402.17427</a>）<br />
+将大场景<strong>分块</strong>训练，每块独立优化，最后拼接。加入去天空处理和外观解耦（消除不同图像间的光照差异）。</p>
+<p><strong>CityGaussian</strong>（ECCV 2024，<a class="reference external" href="https://arxiv.org/abs/2404.01133">arXiv:2404.01133</a>）<br />
+自适应层次化（Level-of-Detail，LOD）高斯表示：远处用少而大的高斯，近处用多而小的高斯。支持城市级别（数平方公里）场景。</p>
+<p><strong>GaussianWorld</strong>（2025，<a class="reference external" href="https://arxiv.org/abs/2501.00316">arXiv:2501.00316</a>）<br />
+可扩展的开放世界场景表示，支持在线增量扩展（边探索边建图），具有语义感知的场景组织。</p>
+<p><strong>核心技术挑战：</strong></p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>挑战</p></th>
+<th class="head"><p>解决思路</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>远处高斯退化</p></td>
+<td><p>球面映射（Sky Box）+ 场景规范化</p></td>
+</tr>
+<tr class="row-odd"><td><p>内存溢出</p></td>
+<td><p>流式训练（分块加载）</p></td>
+</tr>
+<tr class="row-even"><td><p>光照不一致</p></td>
+<td><p>外观解耦（Appearance Decoupling）</p></td>
+</tr>
+<tr class="row-odd"><td><p>精细度不足</p></td>
+<td><p>LOD层次高斯</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>思考题</strong>：无人机俯拍城市的图像数据，与地面环绕拍摄的数据，在COLMAP重建时会遇到什么不同的挑战？如何设计拍摄轨迹来覆盖建筑的立面细节？</p>
+</section>
+</section>
+<hr class="docutils" />
+<section id="id10">
+<h2>9.5 文本/图像驱动生成<a class="headerlink" href="#id10" title="链接到此标题。"></a></h2>
+<p><strong>问题</strong>：3DGS需要大量真实图像作为输入。如果没有图像，能否从文本描述或单张图像直接生成3DGS场景？</p>
+<section id="id11">
+<h3>代表工作<a class="headerlink" href="#id11" title="链接到此标题。"></a></h3>
+<p><strong>GaussianDreamer</strong>（CVPR 2024，<a class="reference external" href="https://arxiv.org/abs/2312.14231">arXiv:2312.14231</a>）<br />
+用文本驱动的扩散模型（如 Stable Diffusion 3D）生成初始点云，然后用3DGS优化渲染质量。&quot;从文字到可渲染3D场景&quot;，约15分钟生成。</p>
+<p><strong>DreamGaussian</strong>（ICLR 2024，<a class="reference external" href="https://arxiv.org/abs/2309.16653">arXiv:2309.16653</a>）<br />
+从<strong>单张图像</strong>生成3DGS场景：先用diffusion model做360度图像补全，再用3DGS优化。约2分钟完成。</p>
+<p><strong>GaussianEditor</strong>（CVPR 2024，<a class="reference external" href="https://arxiv.org/abs/2311.14521">arXiv:2311.14521</a>）<br />
+文本驱动的场景编辑：输入&quot;把椅子变成木质风格&quot;，系统自动找到对应高斯并修改。</p>
+<p><strong>Instruct-GS2GS</strong>（ECCV 2024，<a class="reference external" href="https://arxiv.org/abs/2403.14302">arXiv:2403.14302</a>）<br />
+基于自然语言指令的3DGS场景编辑，利用InstructPix2Pix做图像级别编辑后反向优化高斯参数。</p>
+<p><strong>思考题</strong>：GaussianDreamer 生成的场景在&quot;外观多样性&quot;上与基于真实图像训练的3DGS有什么本质差异？生成内容为什么难以完全逼真？</p>
+</section>
+</section>
+<hr class="docutils" />
+<section id="id12">
+<h2>9.6 语义理解与场景分析<a class="headerlink" href="#id12" title="链接到此标题。"></a></h2>
+<p><strong>问题</strong>：原版3DGS只有外观信息（颜色），没有语义信息（这是椅子、那是桌子）。加入语义信息可以支持场景理解、目标检测、虚拟编辑等任务。</p>
+<section id="id13">
+<h3>代表工作<a class="headerlink" href="#id13" title="链接到此标题。"></a></h3>
+<p><strong>Gaussian Grouping</strong>（CVPR 2024，<a class="reference external" href="https://arxiv.org/abs/2312.00732">arXiv:2312.00732</a>）<br />
+无需额外标注，通过聚类3DGS高斯基元实现<strong>实例级别的语义分割</strong>。输入 Segment Anything Model (SAM) 的2D分割结果，在3D中一致性地传播到高斯层面，实现任意物体的3D选中和编辑。</p>
+<p><strong>Feature 3DGS</strong>（CVPR 2024，<a class="reference external" href="https://arxiv.org/abs/2312.03203">arXiv:2312.03203</a>）<br />
+将2D基础模型（CLIP、DINO、SAM）的<strong>特征向量蒸馏</strong>到3DGS高斯基元中，实现开放词汇查询（&quot;找出所有椅子&quot;）。</p>
+<p><strong>LangSplat</strong>（CVPR 2024，<a class="reference external" href="https://arxiv.org/abs/2312.16084">arXiv:2312.16084</a>）<br />
+将CLIP语言特征嵌入3DGS，支持自然语言驱动的3D目标定位。</p>
+<p><strong>OpenGaussian</strong>（2024，<a class="reference external" href="https://arxiv.org/abs/2406.11421">arXiv:2406.11421</a>）<br />
+开放词汇3D场景理解，支持任意语言查询定位三维物体。</p>
+<p><strong>思考题</strong>：Feature 3DGS 把2D特征蒸馏到3D高斯，蒸馏时如何处理同一个高斯从不同视角看到的特征不一致问题？（提示：类比球谐系数处理视角相关颜色的方式）</p>
+</section>
+</section>
+<hr class="docutils" />
+<section id="id14">
+<h2>9.7 光照分解与重光照<a class="headerlink" href="#id14" title="链接到此标题。"></a></h2>
+<p><strong>问题</strong>：原版3DGS将光照&quot;烘焙&quot;进球谐系数，更换光照环境需要重新训练。重光照（Relighting）是指在新的光照环境下渲染原场景。</p>
+<section id="id15">
+<h3>代表工作<a class="headerlink" href="#id15" title="链接到此标题。"></a></h3>
+<p><strong>Relightable 3DGS</strong>（NeurIPS 2024，<a class="reference external" href="https://arxiv.org/abs/2311.09897">arXiv:2311.09897</a>）<br />
+将每个高斯的外观分解为：漫反射颜色（Diffuse）、镜面反射参数（BRDF）、可见度（Visibility）。训练后可以在任意新光照下重新渲染。</p>
+<p><strong>GaussianShader</strong>（2024，<a class="reference external" href="https://arxiv.org/abs/2311.17977">arXiv:2311.17977</a>）<br />
+为3DGS加入可学习的着色器，建模高光、法线、粗糙度等PBR（基于物理的渲染）参数。</p>
+<p><strong>GS-IR</strong>（CVPR 2024，<a class="reference external" href="https://arxiv.org/abs/2311.16473">arXiv:2311.16473</a>）<br />
+从3DGS恢复材质（BRDF）和光照（环境贴图），支持重光照和材质编辑。</p>
+<p><strong>2025年趋势：</strong> 结合神经SDF和3DGS的混合方法，在高保真渲染和精确材质估计之间取得更好的平衡。</p>
+<p><strong>思考题</strong>：在有强烈镜面反射的场景（如不锈钢水壶），重光照时需要考虑<strong>互反射（Inter-reflection）</strong>（物体间相互反射光）。现有的重光照3DGS方法能处理这种效果吗？</p>
+</section>
+</section>
+<hr class="docutils" />
+<section id="avatar">
+<h2>9.8 人体与Avatar建模<a class="headerlink" href="#avatar" title="链接到此标题。"></a></h2>
+<p><strong>问题</strong>：人体是视频生成、VR/AR、虚拟试穿最重要的对象。用3DGS建模可驱动的人体模型是热点方向。</p>
+<section id="id16">
+<h3>代表工作<a class="headerlink" href="#id16" title="链接到此标题。"></a></h3>
+<p><strong>GaussianAvatars</strong>（CVPR 2024，<a class="reference external" href="https://arxiv.org/abs/2312.02069">arXiv:2312.02069</a>）<br />
+将高斯基元<strong>绑定到FLAME人脸模型</strong>上，通过驱动FLAME参数实现面部表情和头部姿态控制。高精度、实时渲染的人脸重建。</p>
+<p><strong>SplattingAvatar</strong>（CVPR 2024，<a class="reference external" href="https://arxiv.org/abs/2403.05087">arXiv:2403.05087</a>）<br />
+将高斯基元绑定到SMPL人体模型上，实现全身可驱动的人体Avatar。</p>
+<p><strong>Human Gaussian Splatting</strong>（CVPR 2024，<a class="reference external" href="https://arxiv.org/abs/2311.17113">arXiv:2311.17113</a>）<br />
+单目视频重建可动画的人体高斯模型，不需要多摄像机系统。</p>
+<p><strong>GPS-Gaussian</strong>（CVPR 2024，<a class="reference external" href="https://arxiv.org/abs/2312.02155">arXiv:2312.02155</a>）<br />
+实时生成任意姿态下的人体Gaussian Splatting，支持实时传输和渲染。</p>
+<p><strong>思考题</strong>：FLAME/SMPL模型是预建的参数化人体/人脸模型，有固定的拓扑结构。将高斯绑定到这类模型上，会在什么情况下失败？（提示：考虑衣物、头发、手持物品等非模型元素）</p>
+</section>
+</section>
+<hr class="docutils" />
+<section id="id17">
+<h2>9.9 自动驾驶仿真<a class="headerlink" href="#id17" title="链接到此标题。"></a></h2>
+<p><strong>问题</strong>：自动驾驶的感知模型需要大量训练数据，真实采集成本高。用3DGS重建真实驾驶场景，可以便宜地生成多样化训练数据。</p>
+<section id="id18">
+<h3>代表工作<a class="headerlink" href="#id18" title="链接到此标题。"></a></h3>
+<p><strong>HUGSIM</strong>（arXiv 2025，<a class="reference external" href="https://arxiv.org/abs/2501.12320">arXiv:2501.12320</a>）<br />
+统一的闭环自动驾驶仿真框架：重建驾驶场景，支持相机、LiDAR等多传感器模拟，支持闭环测试（仿真中控制车辆并实时渲染新视角）。</p>
+<p><strong>EmerNeRF</strong>（ICLR 2024，<a class="reference external" href="https://arxiv.org/abs/2311.02077">arXiv:2311.02077</a>）<br />
+将驾驶场景分解为静态背景（3DGS）和动态前景（时序高斯），并加入LiDAR深度监督。</p>
+<p><strong>DrivingGaussian</strong>（CVPR 2024，<a class="reference external" href="https://arxiv.org/abs/2312.07920">arXiv:2312.07920</a>）<br />
+专为驾驶场景设计的复合高斯表示：增量式重建沿途场景，支持动态物体的独立建模。</p>
+<p><strong>Street Gaussians</strong>（ECCV 2024，<a class="reference external" href="https://arxiv.org/abs/2401.01339">arXiv:2401.01339</a>）<br />
+将驾驶场景中的动态车辆用<strong>独立的3DGS模型</strong>表示，实现动态目标的精确重建和自由控制。</p>
+<p><strong>工业落地进展（2025）：</strong></p>
+<ul class="simple">
+<li><p>Wayve、Waymo等公司已将3DGS类方法用于感知训练数据增强</p></li>
+<li><p>传感器级别真实性（LiDAR点云统计一致性）是当前主要评测维度</p></li>
+</ul>
+<p><strong>思考题</strong>：在闭环仿真中，当自动驾驶车辆偏离原始录制轨迹时，3DGS需要渲染从<strong>训练时未曾见过</strong>的视角拍摄的场景。这种&quot;外推渲染&quot;会出现什么问题？如何缓解？</p>
+</section>
+</section>
+<hr class="docutils" />
+<section id="slam">
+<h2>9.10 SLAM 与实时建图<a class="headerlink" href="#slam" title="链接到此标题。"></a></h2>
+<p><strong>问题</strong>：传统3DGS需要预先收集所有图像（离线），无法支持机器人实时建图（SLAM）场景中的在线、增量建图需求。</p>
+<section id="id19">
+<h3>代表工作<a class="headerlink" href="#id19" title="链接到此标题。"></a></h3>
+<p><strong>3DGS-SLAM</strong>（CVPR 2024，<a class="reference external" href="https://arxiv.org/abs/2312.02126">arXiv:2312.02126</a>）<br />
+将3DGS场景表示与实时SLAM系统结合：相机位姿跟踪（Tracking）和场景建图（Mapping）交替进行，实现实时、增量式的3DGS建图。</p>
+<p><strong>SplaTAM</strong>（CVPR 2024，<a class="reference external" href="https://arxiv.org/abs/2312.02126">arXiv:2312.02126</a>）<br />
+简洁优雅的高斯SLAM实现，将整个SLAM流程简化为高斯基元的在线优化问题，在TUM RGB-D数据集上达到sota。</p>
+<p><strong>MonoGS</strong>（CVPR 2024，<a class="reference external" href="https://arxiv.org/abs/2405.06241">arXiv:2405.06241</a>）<br />
+<strong>单目</strong>（仅RGB，无深度传感器）的高斯SLAM，在未知相机位姿下实时建图，是最接近实用部署的方案。</p>
+<p><strong>在线建图的工程挑战：</strong></p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>挑战</p></th>
+<th class="head"><p>说明</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>闭环检测</p></td>
+<td><p>重新访问已建图区域时需要纠正累积误差</p></td>
+</tr>
+<tr class="row-odd"><td><p>实时性</p></td>
+<td><p>Tracking和Mapping需在33ms内完成</p></td>
+</tr>
+<tr class="row-even"><td><p>内存管理</p></td>
+<td><p>无限增长的高斯需要有上限策略</p></td>
+</tr>
+<tr class="row-odd"><td><p>一致性</p></td>
+<td><p>高斯更新时不能破坏已建图区域的质量</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>思考题</strong>：3DGS-SLAM 在实时建图时，当相机遇到之前见过的区域（闭环），高斯的位置和形状需要全局调整（Bundle Adjustment）。这与原版3DGS的离线BA有什么不同？在线BA面临哪些挑战？</p>
+</section>
+</section>
+<hr class="docutils" />
+<section id="id20">
+<h2>9.11 阅读前沿论文的方法论<a class="headerlink" href="#id20" title="链接到此标题。"></a></h2>
+<section id="id21">
+<h3>检索工具<a class="headerlink" href="#id21" title="链接到此标题。"></a></h3>
+<ul class="simple">
+<li><p><strong>arXiv cs.CV</strong>：<a class="reference external" href="https://arxiv.org/list/cs.CV/recent">arxiv.org/list/cs.CV/recent</a>，每天更新，是最快看到新工作的地方</p></li>
+<li><p><strong>Semantic Scholar</strong>：<a class="reference external" href="https://www.semanticscholar.org/">semanticscholar.org</a>，支持引用关系搜索和相关论文推荐</p></li>
+<li><p><strong>Papers With Code</strong>：<a class="reference external" href="https://paperswithcode.com/">paperswithcode.com</a>，附带代码链接和benchmark排行榜</p></li>
+<li><p><strong>Awesome-3D-Gaussian-Splatting</strong>：<a class="reference external" href="https://github.com/MrNeRF/awesome-3D-gaussian-splatting">github.com/MrNeRF/awesome-3D-gaussian-splatting</a>，社区维护的3DGS论文列表</p></li>
+</ul>
+</section>
+<section id="id22">
+<h3>15分钟快速判断论文价值<a class="headerlink" href="#id22" title="链接到此标题。"></a></h3>
+<ol class="arabic simple">
+<li><p><strong>摘要（2分钟）</strong>：解决了什么问题？贡献是什么？结果超过SOTA多少？</p></li>
+<li><p><strong>图1和实验表格（5分钟）</strong>：效果图是否直观？定量数字是否比较公平？有没有消融实验？</p></li>
+<li><p><strong>方法核心图（5分钟）</strong>：架构图是否清晰？新颖性体现在哪里？</p></li>
+<li><p><strong>限制和未来工作（3分钟）</strong>：作者自己承认的局限是什么？这说明什么没解决？</p></li>
+</ol>
+</section>
+<section id="id23">
+<h3>跟踪2025-2026新进展的工作流<a class="headerlink" href="#id23" title="链接到此标题。"></a></h3>
+<p><strong>每周检索命令（在arXiv搜索）：</strong></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>搜索词：gaussian splatting + 年份
+过滤：cs.CV + 最近7天
+排序：相关性
+</pre></div>
+</div>
+<p>推荐订阅 <a class="reference external" href="https://huggingface.co/papers">Daily Papers</a>（Hugging Face）或 <a class="reference external" href="https://github.com/Vincentqyw/cv-arxiv-daily">arxiv-daily</a>。</p>
+<p><strong>判断&quot;值得精读&quot;的快速筛选标准：</strong></p>
+<ul class="simple">
+<li><p>被大组/知名实验室提交（INRIA、Stanford、CMU、UCB、腾讯AI、字节、商汤等）</p></li>
+<li><p>在顶会（CVPR/ICCV/ECCV/SIGGRAPH/NeurIPS/ICLR）录用</p></li>
+<li><p>代码已开源（代码开源=作者对结果有信心）</p></li>
+<li><p>在多个数据集上都有改善（不是只在一个特殊数据集上好）</p></li>
+</ul>
+<p><img alt="图9.1 3DGS改进方向全景图" src="_images/ch9_fig1.png" />
+<img alt="图9.3 各方法FPS vs PSNR散点图" src="_images/ch9_fig3.png" />
+<img alt="图9.4 论文发表数量时间线" src="_images/ch9_fig4.png" /></p>
+<p><strong>思考题</strong>：3DGS领域每周都有数篇新论文。如何判断一篇新论文的贡献是&quot;真正的改进&quot;还是&quot;刷数字&quot;（只在特定设置下有效，无法泛化）？</p>
+</section>
+</section>
+<hr class="docutils" />
+<section id="id24">
+<h2>本章小结<a class="headerlink" href="#id24" title="链接到此标题。"></a></h2>
+<p>截至2026年中，3DGS已从单一方法演变为完整的方向生态：</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>方向</p></th>
+<th class="head"><p>代表方法</p></th>
+<th class="head"><p>成熟度</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>压缩与效率</p></td>
+<td><p>Scaffold-GS, gsplat</p></td>
+<td><p>成熟，已有工程部署</p></td>
+</tr>
+<tr class="row-odd"><td><p>表面重建</p></td>
+<td><p>2DGS, GOF</p></td>
+<td><p>较成熟，可用于测量</p></td>
+</tr>
+<tr class="row-even"><td><p>动态场景</p></td>
+<td><p>4D Gaussians, Deformable</p></td>
+<td><p>研究阶段，效果有限</p></td>
+</tr>
+<tr class="row-odd"><td><p>大场景</p></td>
+<td><p>VastGaussian, CityGaussian</p></td>
+<td><p>初步成熟</p></td>
+</tr>
+<tr class="row-even"><td><p>语义理解</p></td>
+<td><p>Gaussian Grouping, Feature 3DGS</p></td>
+<td><p>较成熟</p></td>
+</tr>
+<tr class="row-odd"><td><p>重光照</p></td>
+<td><p>Relightable 3DGS</p></td>
+<td><p>研究阶段</p></td>
+</tr>
+<tr class="row-even"><td><p>自动驾驶</p></td>
+<td><p>HUGSIM, Street Gaussians</p></td>
+<td><p>工业落地中</p></td>
+</tr>
+<tr class="row-odd"><td><p>SLAM</p></td>
+<td><p>3DGS-SLAM, SplaTAM</p></td>
+<td><p>实验室级别</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<hr class="docutils" />
+<section id="id25">
+<h2>推荐阅读<a class="headerlink" href="#id25" title="链接到此标题。"></a></h2>
+<ul class="simple">
+<li><p><a class="reference external" href="https://github.com/MrNeRF/awesome-3D-gaussian-splatting">Awesome-3D-Gaussian-Splatting</a> — 持续维护的论文列表，新论文优先在此出现</p></li>
+<li><p><a class="reference external" href="https://arxiv.org/abs/2401.03890">3DGS Surveys</a> — Gaussian Splatting综述论文（2024）</p></li>
+<li><p><a class="reference external" href="https://paperswithcode.com/task/gaussian-splatting">Papers With Code - Gaussian Splatting</a> — 实时benchmark排行榜</p></li>
+</ul>
+<hr class="docutils" />
+<p><em>上一章：<a class="reference internal" href="chapter8.html"><span class="std std-doc">第八章：数据准备与训练实战</span></a>  | 下一章：<a class="reference internal" href="chapter10.html"><span class="std std-doc">第十章：成为贡献者——如何迭代改进系统</span></a></em></p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="页脚">
+        <a href="chapter8.html" class="btn btn-neutral float-left" title="第八章：数据准备与训练实战" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> 上一页</a>
+        <a href="chapter10.html" class="btn btn-neutral float-right" title="第十章：成为贡献者——如何迭代改进系统" accesskey="n" rel="next">下一页 <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; 版权所有 2026, 日月星辰。
+      <span class="lastupdated">最后更新于 2026 年 09 月 12 日.
+      </span></p>
+  </div>
+
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
