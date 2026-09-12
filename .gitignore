@@ -12,3 +12,9 @@ openspec
 note/
 # Sphinx 构建缓存
 _build/
+
+# 构建产物与临时文件
+docs/.doctrees/
+docs/.buildinfo
+docs/.buildinfo.bak
+docs/_sources/
