@@ -1,92 +1,32 @@
-/* 强制白色背景主题：覆盖一切深色偏好 */
+/* 外观对齐 ROS 2 文档：
+   深色侧边栏 + 白色正文 + 更宽的阅读区。
+   rtd 主题自带的深色侧边栏即为 ROS 2 观感，这里只做宽度与细节微调。 */
+
+/* ---- 正文区域拉宽 ---- */
+.wy-nav-content {
+  max-width: 1200px;
+}
+
+@media screen and (min-width: 1400px) {
+  .wy-nav-content {
+    max-width: 1320px;
+  }
+}
+
+/* ---- 正文白底，且不受系统深色偏好影响 ---- */
 html {
   color-scheme: light only;
 }
 
-html,
 body,
 .wy-body-for-nav,
 .wy-nav-content-wrap,
 .wy-nav-content,
 .rst-content,
-.rst-content .section,
 .document {
-  background: #ffffff !important;
-  color: #1f2328 !important;
+  background: #ffffff;
 }
 
-/* 左侧导航栏：白色 */
-.wy-nav-side {
-  background: #ffffff !important;
-  border-right: 1px solid #e3e6e8;
-}
-
-.wy-side-nav-search {
-  background-color: #ffffff !important;
-  border-bottom: 1px solid #e3e6e8;
-}
-
-.wy-side-nav-search > a,
-.wy-side-nav-search .wy-dropdown > a,
-.wy-side-nav-search > div.version {
-  color: #1f2328 !important;
-}
-
-.wy-side-nav-search input[type="text"] {
-  border: 1px solid #d0d7de !important;
-  background: #ffffff !important;
-  color: #1f2328 !important;
-  box-shadow: none !important;
-}
-
-.wy-menu-vertical {
-  background: #ffffff !important;
-}
-
-.wy-menu-vertical a {
-  color: #40464d !important;
-}
-
-.wy-menu-vertical a:hover {
-  background-color: #f2f4f6 !important;
-  color: #0969da !important;
-}
-
-.wy-menu-vertical li.current,
-.wy-menu-vertical li.current > a,
-.wy-menu-vertical li.current a,
-.wy-menu-vertical li.on a {
-  background: #f6f8fa !important;
-  color: #1f2328 !important;
-  border-top: none !important;
-  border-bottom: none !important;
-}
-
-.wy-menu-vertical li.current a:hover {
-  background: #eef1f4 !important;
-  color: #0969da !important;
-}
-
-.wy-menu-vertical li.toctree-l1.current > a {
-  border-left: 3px solid #0969da !important;
-}
-
-.wy-menu-vertical header,
-.wy-menu-vertical p.caption {
-  color: #6a737d !important;
-}
-
-.wy-nav-top {
-  background: #ffffff !important;
-  border-bottom: 1px solid #e3e6e8;
-}
-
-.wy-nav-top a,
-.wy-nav-top i {
-  color: #1f2328 !important;
-}
-
-/* 正文元素 */
 .rst-content h1,
 .rst-content h2,
 .rst-content h3,
@@ -97,72 +37,116 @@ body,
 .rst-content th,
 .rst-content dt,
 .rst-content dd {
-  color: #1f2328 !important;
+  color: #404040;
 }
 
-.rst-content h1,
+/* ---- 侧边栏：深色，贴近 ROS 2 ---- */
+.wy-nav-side {
+  background: #343131;
+}
+
+.wy-side-nav-search {
+  background-color: #2b2929;
+  border-bottom: 1px solid #3d3a3a;
+}
+
+.wy-side-nav-search input[type="text"] {
+  border: 1px solid #3d3a3a;
+  background: #ffffff;
+  color: #333333;
+}
+
+.wy-menu-vertical a {
+  color: #d9d9d9;
+}
+
+.wy-menu-vertical a:hover {
+  background-color: #4a4646;
+  color: #ffffff;
+}
+
+.wy-menu-vertical li.current,
+.wy-menu-vertical li.current > a,
+.wy-menu-vertical li.current a {
+  background: #3d3a3a;
+  color: #ffffff;
+}
+
+.wy-menu-vertical li.current a:hover {
+  background: #4a4646;
+}
+
+.wy-menu-vertical li.on a:hover {
+  background: #4a4646;
+}
+
+.wy-menu-vertical header,
+.wy-menu-vertical p.caption {
+  color: #b3b3b3;
+}
+
+.wy-menu-vertical li.toctree-l1.current > a {
+  border-left: 3px solid #2980b9;
+}
+
+/* ---- 移动端顶栏 ---- */
+.wy-nav-top {
+  background: #343131;
+}
+
+/* ---- 正文排版细节 ---- */
+.rst-content p,
+.rst-content li {
+  line-height: 1.75;
+  font-size: 15.5px;
+}
+
+.rst-content h1 {
+  font-size: 1.9em;
+}
+
 .rst-content h2 {
-  border-bottom: 1px solid #e3e6e8 !important;
+  font-size: 1.45em;
+  margin-top: 1.8em;
 }
 
-.rst-content a {
-  color: #0969da !important;
+.rst-content h3 {
+  font-size: 1.15em;
 }
 
 .rst-content code,
-.rst-content tt,
+.rst-content tt {
+  background: #f5f5f5;
+  border: 1px solid #e1e1e1;
+  color: #333333;
+}
+
 .rst-content pre {
-  background: #f6f8fa !important;
-  color: #1f2328 !important;
-  border: 1px solid #e3e6e8 !important;
+  border: 1px solid #e1e1e1;
 }
 
-.rst-content table.docutils th {
-  background: #f6f8fa !important;
+/* ---- Edit on GitHub 链接 ---- */
+.wy-breadcrumbs-aside a {
+  color: #2980b9;
+  font-size: 13px;
 }
 
-.rst-content table.docutils th,
-.rst-content table.docutils td {
-  border: 1px solid #e3e6e8 !important;
+.wy-breadcrumbs-aside a:hover {
+  color: #1a5f8a;
 }
 
-.rst-content blockquote {
-  border-left: 4px solid #e3e6e8 !important;
-  background: #f9fafb !important;
-  color: #40464d !important;
-}
-
-.rst-content hr {
-  border-top: 1px solid #e3e6e8 !important;
-}
-
-/* 底部上一页/下一页 */
-.rst-footer-buttons,
-.btn {
-  background: #ffffff !important;
-  color: #1f2328 !important;
-  border: 1px solid #d0d7de !important;
-}
-
-.btn:hover {
-  background: #f2f4f6 !important;
-}
-
-/* 公式容器允许横向滚动，避免溢出 */
+/* ---- 公式容器允许横向滚动 ---- */
 mjx-container[display="true"] {
   overflow-x: auto;
   overflow-y: hidden;
 }
 
-/* 若浏览器强制深色，同样压回白色 */
-@media (prefers-color-scheme: dark) {
-  html, body, .wy-body-for-nav, .wy-nav-content-wrap, .wy-nav-content,
-  .rst-content, .document, .wy-nav-side, .wy-menu-vertical,
-  .wy-side-nav-search, .wy-nav-top {
-    background: #ffffff !important;
-    color: #1f2328 !important;
-  }
-  .wy-menu-vertical a { color: #40464d !important; }
-  .rst-content h1, .rst-content h2, .rst-content h3,
-  .rst-content p, .rst-content li { color: #1f2328 !important; }
+/* ---- 表格 ---- */
+.rst-content table.docutils {
+  border: 1px solid #e1e1e1;
+}
+
+.rst-content table.docutils th {
+  background: #f7f7f7;
+  color: #333333;
 }

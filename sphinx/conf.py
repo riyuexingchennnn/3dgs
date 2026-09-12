@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Sphinx 配置：把 Markdown 教程构建为带左侧目录导航的静态站点。"""
+"""Sphinx 配置：构建带左侧目录导航的 3DGS 教程站点，外观对齐 ROS 2 文档。"""
 
 project = "三维高斯溅射（3DGS）完全教程"
 author = "日月星辰"
@@ -17,8 +17,8 @@ extensions = [
 # ---- Markdown 解析 ----
 source_suffix = {".md": "markdown"}
 myst_enable_extensions = [
-    "dollarmath",   # $...$ 与 $$...$$
-    "amsmath",      # \begin{align} 等环境
+    "dollarmath",
+    "amsmath",
     "colon_fence",
     "deflist",
     "tasklist",
@@ -40,7 +40,7 @@ mathjax3_config = {
     },
 }
 
-# ---- 主题：RTD，左侧目录导航，强制白色 ----
+# ---- 主题：RTD（ROS 2 文档同款），深色侧边栏 + 白色正文 ----
 html_theme = "sphinx_rtd_theme"
 html_theme_options = {
     "collapse_navigation": False,
@@ -49,13 +49,24 @@ html_theme_options = {
     "includehidden": True,
     "titles_only": False,
     "prev_next_buttons_location": "bottom",
+    "style_external_links": True,
 }
 html_static_path = ["_static"]
 html_css_files = ["custom.css"]
-html_title = "3DGS 完全教程"
+html_js_files = ["custom.js"]
+html_title = "3DGS 教程文档"
 html_short_title = "3DGS 教程"
 
-# ---- 输出精简 ----
+# ---- 右上角 Edit on GitHub ----
+html_context = {
+    "display_github": True,
+    "github_user": "riyuexingchennnn",
+    "github_repo": "3dgs",
+    "github_version": "master",
+    "conf_py_path": "/sphinx/",
+}
+
+# ---- 输出 ----
 html_copy_source = False
 html_show_sourcelink = False
 html_show_sphinx = False
